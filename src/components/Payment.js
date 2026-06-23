@@ -9,6 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
 import { useCart } from "./CartContext";
 import { useNavigate } from "react-router-dom";
 
@@ -38,6 +39,12 @@ const Payment = () => {
       return;
     }
     alert(`✅ Card Payment of $${total.toFixed(2)} successful!`);
+    clearCart();
+    navigate("/");
+  };
+
+  const handleScannerPayment = () => {
+    alert(`✅ Scanner Payment of $${total.toFixed(2)} successful!`);
     clearCart();
     navigate("/");
   };
@@ -125,6 +132,45 @@ const Payment = () => {
             onClick={handleCardPayment}
           >
             Pay ₹{total.toFixed(2)} via Card
+          </Button>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 📷 Scanner Payment */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h6">Pay via Scanner</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography variant="body2" mb={2}>
+            Scan the QR code below to complete your payment
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 2 }}>
+            <Box
+              sx={{
+                border: "2px solid",
+                borderColor: "grey.400",
+                borderRadius: 2,
+                p: 3,
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <QrCode2Icon sx={{ fontSize: 120, color: "text.primary" }} />
+              <Typography variant="caption" color="text.secondary">
+                Amount: ₹{total.toFixed(2)}
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            variant="contained"
+            color="success"
+            fullWidth
+            onClick={handleScannerPayment}
+          >
+            Scan Complete — Pay ₹{total.toFixed(2)}
           </Button>
         </AccordionDetails>
       </Accordion>
