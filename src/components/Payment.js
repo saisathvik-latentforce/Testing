@@ -9,8 +9,62 @@ import {
   Button,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import { useCart } from "./CartContext";
 import { useNavigate } from "react-router-dom";
+
+// Minimal 21×21 QR matrix with correct position-detection markers
+const QR_MATRIX = [
+  [1,1,1,1,1,1,1,0,1,0,1,1,0,0,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,0,1,0,1,0,0,1,1,0,1,1,1,0,1],
+  [1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1],
+  [1,0,1,1,1,0,1,0,1,1,0,0,1,1,1,0,1,1,1,0,1],
+  [1,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+  [0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,0,0,0,0,0],
+  [1,0,1,1,0,1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1],
+  [0,1,0,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,0,0],
+  [1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,0,1],
+  [0,0,1,0,0,1,0,0,1,1,0,1,1,0,0,0,1,0,0,1,0],
+  [1,0,1,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1],
+  [0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,0,1,1,0,0],
+  [1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,0,1,1,0,1,0],
+  [1,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1,1,0,0],
+  [1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,0,1],
+  [1,0,1,1,1,0,1,0,1,1,0,1,1,0,0,0,1,0,0,1,0],
+  [1,0,1,1,1,0,1,0,0,0,1,0,0,1,1,0,1,1,0,1,1],
+  [1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,1,0,1,1,0,0],
+  [1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,0,1,1,0,1,0],
+];
+
+const QRCode = ({ size = 168 }) => {
+  const cellSize = size / 21;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ border: "8px solid #fff", borderRadius: 4, display: "block" }}
+    >
+      <rect width={size} height={size} fill="#fff" />
+      {QR_MATRIX.map((row, r) =>
+        row.map((cell, c) =>
+          cell ? (
+            <rect
+              key={`${r}-${c}`}
+              x={c * cellSize}
+              y={r * cellSize}
+              width={cellSize}
+              height={cellSize}
+              fill="#1a1a1a"
+            />
+          ) : null
+        )
+      )}
+    </svg>
+  );
+};
 
 const Payment = () => {
   const { total, clearCart } = useCart();
@@ -38,6 +92,12 @@ const Payment = () => {
       return;
     }
     alert(`✅ Card Payment of $${total.toFixed(2)} successful!`);
+    clearCart();
+    navigate("/");
+  };
+
+  const handleScannerPayment = () => {
+    alert(`✅ Scanner Payment of ₹${total.toFixed(2)} successful!`);
     clearCart();
     navigate("/");
   };
@@ -125,6 +185,42 @@ const Payment = () => {
             onClick={handleCardPayment}
           >
             Pay ₹{total.toFixed(2)} via Card
+          </Button>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 📷 Scanner Payment */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <QrCodeScannerIcon fontSize="small" />
+            <Typography variant="h6">Pay via Scanner</Typography>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography variant="body2" textAlign="center" mb={2}>
+            Scan the QR code with any UPI payment app (GPay, PhonePe, Paytm…)
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+            <QRCode size={168} />
+          </Box>
+          <Typography
+            variant="caption"
+            display="block"
+            textAlign="center"
+            color="text.secondary"
+            mb={2}
+          >
+            Amount: ₹{total.toFixed(2)}
+          </Typography>
+          <Button
+            variant="contained"
+            color="success"
+            fullWidth
+            startIcon={<QrCodeScannerIcon />}
+            onClick={handleScannerPayment}
+          >
+            Payment Done
           </Button>
         </AccordionDetails>
       </Accordion>
