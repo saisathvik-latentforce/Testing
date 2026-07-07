@@ -145,7 +145,7 @@ const Navbar = ({ open, setOpen }) => {
           <Autocomplete
             freeSolo
             disableClearable
-            sx={{ width: "20%" }}
+            sx={{ width: { xs: '45%', sm: '30%', md: '20%' } }}
             options={products.map((item) => item.title)}
             renderInput={(params) => (
               <TextField
