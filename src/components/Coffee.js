@@ -233,17 +233,17 @@ const Coffee = () => {
                                         textAlign: "center",
                                         padding: 2,
                                         border: "2px solid transparent",
-                                        transition: "border-color 0.3s",
-                                        "&:hover": { borderColor: "primary.main" },
+                                        transition: "border-color 0.3s, box-shadow 0.3s",
+                                        "&:hover": { borderColor: "primary.main", boxShadow: 8 },
                                     }}
                                 >
                                     <CardMedia
                                         component="img"
-                                        height="200"
+                                        height="220"
                                         image={product.image}
                                         alt={product.title}
                                     />
-                                    <CardContent>
+                                    <CardContent sx={{ minHeight: 200 }}>
                                         <Typography variant="h6">{product.title}</Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             {product.description}
