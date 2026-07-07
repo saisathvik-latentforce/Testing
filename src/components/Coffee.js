@@ -180,15 +180,17 @@
 
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardMedia, Button, Typography, Box, Chip, Switch, Rating, Stack, Fab, Grid } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Box, Chip, Switch, Rating, Stack, Fab, Grid, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import productsData from '../assets/coffee';
 import { useCart } from './CartContext';
 import { motion } from "motion/react";
 import AddCoffeeDialog from './AddCoffeeDialog';
 
 const Coffee = () => {
-    const { addToCart } = useCart(); 
+    const { addToCart, updateQuantity, cart } = useCart();
+    const getCartQty = (id) => cart.find(item => item.id === id)?.quantity || 0;
     const MotionCard = motion(Card);
 
     const [products, setProducts] = useState(productsData);
@@ -249,13 +251,27 @@ const Coffee = () => {
 
                                         <Box sx={{ minHeight: 70, display: "flex", justifyContent: "center", alignItems: "center" }}>
                                             {isActive && (
-                                                <Stack direction="row" spacing={1} useFlexGap justifyContent="center">
+                                                <Stack direction="row" spacing={1} useFlexGap justifyContent="center" alignItems="center">
                                                     <Typography variant="h6" color="primary">
                                                         ${product.price.toFixed(2)}
                                                     </Typography>
-                                                    <Button variant="contained" color="secondary" onClick={() => addToCart(product)}>
-                                                        Buy Now
-                                                    </Button>
+                                                    {getCartQty(product.id) > 0 ? (
+                                                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                                                            <IconButton size="small" color="secondary" onClick={() => updateQuantity(product.id, getCartQty(product.id) - 1)}>
+                                                                <RemoveIcon fontSize="small" />
+                                                            </IconButton>
+                                                            <Typography variant="body1" sx={{ minWidth: 24, textAlign: 'center', fontWeight: 'bold' }}>
+                                                                {getCartQty(product.id)}
+                                                            </Typography>
+                                                            <IconButton size="small" color="secondary" onClick={() => addToCart(product)}>
+                                                                <AddIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Stack>
+                                                    ) : (
+                                                        <IconButton color="secondary" onClick={() => addToCart(product)} sx={{ border: '1px solid currentColor', borderRadius: 1 }}>
+                                                            <AddIcon />
+                                                        </IconButton>
+                                                    )}
                                                 </Stack>
                                             )}
                                         </Box>
