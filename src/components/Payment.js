@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -8,70 +8,56 @@ import {
   AccordionDetails,
   TextField,
   Button,
-  FormHelperText,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import { useCart } from "./CartContext";
-import { useNavigate } from "react-router-dom";
+  CircularProgress,
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import { useNavigate } from 'react-router-dom';
 
-// Validation helpers
-const validateUPI = (upiId) => {
-  const upiRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/;
-  return upiRegex.test(upiId);
-};
+import { useCart } from './CartContext';
 
-const validateCardNumber = (cardNumber) => {
-  // Remove spaces and check if it's 13-19 digits
-  const cleanNumber = cardNumber.replace(/\s/g, '');
-  return /^\d{13,19}$/.test(cleanNumber);
-};
+const validateUPI = upiId => /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upiId);
 
-const validateExpiry = (expiry) => {
-  const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-  if (!expiryRegex.test(expiry)) return false;
+const validateCardNumber = cardNumber => /^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''));
 
+const validateExpiry = expiry => {
+  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) return false;
   const [month, year] = expiry.split('/');
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear() % 100;
-  const currentMonth = currentDate.getMonth() + 1;
-
+  const now = new Date();
+  const curYear = now.getFullYear() % 100;
+  const curMonth = now.getMonth() + 1;
   const expYear = parseInt(year, 10);
   const expMonth = parseInt(month, 10);
-
-  if (expYear < currentYear) return false;
-  if (expYear === currentYear && expMonth < currentMonth) return false;
-
+  if (expYear < curYear) return false;
+  if (expYear === curYear && expMonth < curMonth) return false;
   return true;
 };
 
-const validateCVV = (cvv) => {
-  return /^\d{3,4}$/.test(cvv);
-};
+const validateCVV = cvv => /^\d{3,4}$/.test(cvv);
 
-// Minimal 21×21 QR matrix with correct position-detection markers
+// Minimal 21×21 QR matrix
 const QR_MATRIX = [
-  [1,1,1,1,1,1,1,0,1,0,1,1,0,0,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,0,1],
-  [1,0,1,1,1,0,1,0,1,0,1,0,0,1,1,0,1,1,1,0,1],
-  [1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1],
-  [1,0,1,1,1,0,1,0,1,1,0,0,1,1,1,0,1,1,1,0,1],
-  [1,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
-  [0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,0,0,0,0,0],
-  [1,0,1,1,0,1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1],
-  [0,1,0,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,0,0],
-  [1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,0,1],
-  [0,0,1,0,0,1,0,0,1,1,0,1,1,0,0,0,1,0,0,1,0],
-  [1,0,1,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1],
-  [0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,0,1,1,0,0],
-  [1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,0,1,1,0,1,0],
-  [1,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1,1,0,0],
-  [1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,0,1],
-  [1,0,1,1,1,0,1,0,1,1,0,1,1,0,0,0,1,0,0,1,0],
-  [1,0,1,1,1,0,1,0,0,0,1,0,0,1,1,0,1,1,0,1,1],
-  [1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,1,0,1,1,0,0],
-  [1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,0,1,1,0,1,0],
+  [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+  [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1],
+  [1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
+  [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+  [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+  [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1],
+  [0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0],
+  [1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1],
+  [0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+  [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0],
+  [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0],
+  [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0],
+  [1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1],
+  [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+  [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1],
+  [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0],
+  [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0],
 ];
 
 const QRCode = ({ size = 168 }) => {
@@ -81,7 +67,8 @@ const QRCode = ({ size = 168 }) => {
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      style={{ border: "8px solid #fff", borderRadius: 4, display: "block" }}
+      style={{ border: '8px solid #fff', borderRadius: 4, display: 'block' }}
+      aria-label="Payment QR code"
     >
       <rect width={size} height={size} fill="#fff" />
       {QR_MATRIX.map((row, r) =>
@@ -102,141 +89,106 @@ const QRCode = ({ size = 168 }) => {
   );
 };
 
-QRCode.propTypes = {
-  size: PropTypes.number,
-};
+QRCode.propTypes = { size: PropTypes.number };
 
 const Payment = () => {
-  const { total, clearCart } = useCart();
+  const { total, clearCart, cart } = useCart();
   const navigate = useNavigate();
-  const [upiId, setUpiId] = useState("");
-  const [upiError, setUpiError] = useState("");
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-  });
-  const [cardErrors, setCardErrors] = useState({
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-  });
 
-  const handleUPIChange = (e) => {
+  const [upiId, setUpiId] = useState('');
+  const [upiError, setUpiError] = useState('');
+  const [cardDetails, setCardDetails] = useState({ cardNumber: '', expiry: '', cvv: '' });
+  const [cardErrors, setCardErrors] = useState({ cardNumber: '', expiry: '', cvv: '' });
+  const [paying, setPaying] = useState(false);
+
+  const goToSuccess = method => {
+    clearCart();
+    navigate('/payment-success', { state: { method, amount: total, items: cart } });
+  };
+
+  const simulatePay = (method, onSuccess) => {
+    setPaying(true);
+    setTimeout(() => {
+      setPaying(false);
+      onSuccess(method);
+    }, 800);
+  };
+
+  const handleUPIChange = e => {
     const value = e.target.value;
     setUpiId(value);
-    if (value && !validateUPI(value)) {
-      setUpiError("Invalid UPI ID format (e.g., username@upi)");
-    } else {
-      setUpiError("");
-    }
+    setUpiError(value && !validateUPI(value) ? 'Invalid UPI ID format (e.g., username@upi)' : '');
   };
 
-  const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 19) value = value.slice(0, 19);
-
-    // Add spaces every 4 digits for readability
-    const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-
-    setCardDetails({ ...cardDetails, cardNumber: formattedValue });
-    if (formattedValue && !validateCardNumber(formattedValue)) {
-      setCardErrors({ ...cardErrors, cardNumber: "Card number must be 13-19 digits" });
-    } else {
-      setCardErrors({ ...cardErrors, cardNumber: "" });
-    }
+  const handleCardNumberChange = e => {
+    let value = e.target.value.replace(/\D/g, '').slice(0, 19);
+    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setCardDetails(p => ({ ...p, cardNumber: formatted }));
+    setCardErrors(p => ({
+      ...p,
+      cardNumber:
+        formatted && !validateCardNumber(formatted) ? 'Card number must be 13–19 digits' : '',
+    }));
   };
 
-  const handleExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 4) value = value.slice(0, 4);
-
-    // Auto-add slash after month
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + '/' + value.slice(2);
-    }
-
-    setCardDetails({ ...cardDetails, expiry: value });
-    if (value && !validateExpiry(value)) {
-      setCardErrors({ ...cardErrors, expiry: "Invalid expiry date (MM/YY)" });
-    } else {
-      setCardErrors({ ...cardErrors, expiry: "" });
-    }
+  const handleExpiryChange = e => {
+    let value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2);
+    setCardDetails(p => ({ ...p, expiry: value }));
+    setCardErrors(p => ({
+      ...p,
+      expiry: value && !validateExpiry(value) ? 'Invalid expiry date (MM/YY)' : '',
+    }));
   };
 
-  const handleCVVChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 4) value = value.slice(0, 4);
-
-    setCardDetails({ ...cardDetails, cvv: value });
-    if (value && !validateCVV(value)) {
-      setCardErrors({ ...cardErrors, cvv: "CVV must be 3-4 digits" });
-    } else {
-      setCardErrors({ ...cardErrors, cvv: "" });
-    }
+  const handleCVVChange = e => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setCardDetails(p => ({ ...p, cvv: value }));
+    setCardErrors(p => ({
+      ...p,
+      cvv: value && !validateCVV(value) ? 'CVV must be 3–4 digits' : '',
+    }));
   };
 
   const handleUPIPayment = () => {
     if (!upiId) {
-      setUpiError("Please enter your UPI ID");
+      setUpiError('Please enter your UPI ID');
       return;
     }
     if (!validateUPI(upiId)) {
-      setUpiError("Invalid UPI ID format");
+      setUpiError('Invalid UPI ID format');
       return;
     }
-    alert(`✅ UPI Payment of $${total.toFixed(2)} successful!`);
-    clearCart();
-    navigate("/");
+    simulatePay('UPI', goToSuccess);
   };
 
   const handleCardPayment = () => {
     const errors = {};
-    if (!cardDetails.cardNumber) {
-      errors.cardNumber = "Card number is required";
-    } else if (!validateCardNumber(cardDetails.cardNumber)) {
-      errors.cardNumber = "Invalid card number";
-    }
-
-    if (!cardDetails.expiry) {
-      errors.expiry = "Expiry date is required";
-    } else if (!validateExpiry(cardDetails.expiry)) {
-      errors.expiry = "Invalid or expired date";
-    }
-
-    if (!cardDetails.cvv) {
-      errors.cvv = "CVV is required";
-    } else if (!validateCVV(cardDetails.cvv)) {
-      errors.cvv = "Invalid CVV";
-    }
-
+    if (!cardDetails.cardNumber) errors.cardNumber = 'Card number is required';
+    else if (!validateCardNumber(cardDetails.cardNumber)) errors.cardNumber = 'Invalid card number';
+    if (!cardDetails.expiry) errors.expiry = 'Expiry date is required';
+    else if (!validateExpiry(cardDetails.expiry)) errors.expiry = 'Invalid or expired date';
+    if (!cardDetails.cvv) errors.cvv = 'CVV is required';
+    else if (!validateCVV(cardDetails.cvv)) errors.cvv = 'Invalid CVV';
     if (Object.keys(errors).length > 0) {
       setCardErrors(errors);
       return;
     }
-
-    alert(`✅ Card Payment of $${total.toFixed(2)} successful!`);
-    clearCart();
-    navigate("/");
+    simulatePay('Card', goToSuccess);
   };
 
-  const handleScannerPayment = () => {
-    alert(`✅ Scanner Payment of $${total.toFixed(2)} successful!`);
-    clearCart();
-    navigate("/");
-  };
+  const handleScannerPayment = () => simulatePay('QR Scanner', goToSuccess);
 
   return (
-    <Box sx={{ p: 4, maxWidth: 600, mx: "auto" }}>
+    <Box sx={{ p: 4, maxWidth: 600, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom textAlign="center">
-        Payment Page
+        Payment
+      </Typography>
+      <Typography variant="h6" gutterBottom textAlign="center" color="text.secondary">
+        Total: ${total.toFixed(2)}
       </Typography>
 
-      <Typography variant="h6" gutterBottom textAlign="center">
-        Total Amount: ${total.toFixed(2)}
-      </Typography>
-
-      {/* 🧾 UPI Payment */}
+      {/* UPI */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">Pay via UPI</Typography>
@@ -252,6 +204,7 @@ const Payment = () => {
             onChange={handleUPIChange}
             error={!!upiError}
             helperText={upiError}
+            disabled={paying}
             sx={{ mb: 2 }}
           />
           <Button
@@ -259,14 +212,15 @@ const Payment = () => {
             color="primary"
             fullWidth
             onClick={handleUPIPayment}
-            disabled={!!upiError || !upiId}
+            disabled={!!upiError || !upiId || paying}
+            startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
           >
-            Pay ${total.toFixed(2)} via UPI
+            {paying ? 'Processing…' : `Pay $${total.toFixed(2)} via UPI`}
           </Button>
         </AccordionDetails>
       </Accordion>
 
-      {/* 💳 Card Payment */}
+      {/* Card */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">Pay via Card</Typography>
@@ -283,9 +237,10 @@ const Payment = () => {
             error={!!cardErrors.cardNumber}
             helperText={cardErrors.cardNumber}
             placeholder="1234 5678 9012 3456"
+            disabled={paying}
             sx={{ mb: 2 }}
           />
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               label="Expiry (MM/YY)"
               value={cardDetails.expiry}
@@ -293,6 +248,7 @@ const Payment = () => {
               error={!!cardErrors.expiry}
               helperText={cardErrors.expiry}
               placeholder="MM/YY"
+              disabled={paying}
               sx={{ flex: 1 }}
             />
             <TextField
@@ -302,37 +258,38 @@ const Payment = () => {
               error={!!cardErrors.cvv}
               helperText={cardErrors.cvv}
               placeholder="123"
+              disabled={paying}
               sx={{ flex: 1 }}
               type="password"
             />
           </Box>
-
           <Button
             variant="contained"
             color="secondary"
             fullWidth
             sx={{ mt: 2 }}
             onClick={handleCardPayment}
-            disabled={!!cardErrors.cardNumber || !!cardErrors.expiry || !!cardErrors.cvv}
+            disabled={!!cardErrors.cardNumber || !!cardErrors.expiry || !!cardErrors.cvv || paying}
+            startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
           >
-            Pay ${total.toFixed(2)} via Card
+            {paying ? 'Processing…' : `Pay $${total.toFixed(2)} via Card`}
           </Button>
         </AccordionDetails>
       </Accordion>
 
-      {/* 📷 Scanner Payment */}
+      {/* QR Scanner */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <QrCodeScannerIcon fontSize="small" />
             <Typography variant="h6">Pay via Scanner</Typography>
           </Box>
         </AccordionSummary>
         <AccordionDetails>
           <Typography variant="body2" textAlign="center" mb={2}>
-            Scan the QR code with any UPI payment app (GPay, PhonePe, Paytm…)
+            Scan the QR code with any UPI app (GPay, PhonePe, Paytm…)
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
             <QRCode size={168} />
           </Box>
           <Typography
@@ -348,10 +305,13 @@ const Payment = () => {
             variant="contained"
             color="success"
             fullWidth
-            startIcon={<QrCodeScannerIcon />}
+            startIcon={
+              paying ? <CircularProgress size={18} color="inherit" /> : <QrCodeScannerIcon />
+            }
             onClick={handleScannerPayment}
+            disabled={paying}
           >
-            Payment Done
+            {paying ? 'Processing…' : 'Payment Done'}
           </Button>
         </AccordionDetails>
       </Accordion>

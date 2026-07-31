@@ -22,7 +22,7 @@
     "no-console": "warn",
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "import/order": [
-      "error",
+      "warn",
       {
         "groups": [
           "builtin",

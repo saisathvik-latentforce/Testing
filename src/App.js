@@ -1,45 +1,59 @@
 import React from 'react';
 import '@fontsource/roboto';
-import theme from './assets/theme';
 import { ThemeProvider } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import ErrorBoundary from './components/ErrorBoundary';
+import Layout from './components/Layout';
 import Hero from './components/Hero';
 import Coffee from './components/Coffee';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Order from './components/Order';
-import { CartProvider } from './components/CartContext';
-import Layout from './components/Layout';
 import CoffeeStats from './components/CoffeeStats';
 import Payment from './components/Payment';
-import ErrorBoundary from './components/ErrorBoundary';
+import PaymentSuccess from './components/PaymentSuccess';
+import { CartProvider } from './components/CartContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { ThemeContext, ThemeContextProvider } from './context/ThemeContext';
 
+const ThemedApp = () => {
+  const { theme } = React.useContext(ThemeContext);
+  return (
+    <ThemeProvider theme={theme}>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route
+            path="/"
+            element={
+              <>
+                <Hero />
+                <Coffee />
+              </>
+            }
+          />
+          <Route path="/orders" element={<Order />} />
+          <Route path="/stats" element={<CoffeeStats />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+        </Route>
+      </Routes>
+    </ThemeProvider>
+  );
+};
 
 const App = () => {
   return (
     <ErrorBoundary>
-      <CartProvider>
-        <Router>
-          <ThemeProvider theme={theme}>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route
-                  path="/"
-                  element={
-                    <>
-                      <Hero />
-                      <Coffee />
-                    </>
-                  }
-                />
-                <Route path="/orders" element={<Order />} />
-                <Route path="/stats" element={<CoffeeStats /> } />
-                <Route path='/payment' element={<Payment />} />
-              </Route>
-            </Routes>
-          </ThemeProvider>
-        </Router>
-      </CartProvider>
+      <ThemeContextProvider>
+        <NotificationProvider>
+          <CartProvider>
+            <Router>
+              <ThemedApp />
+            </Router>
+          </CartProvider>
+        </NotificationProvider>
+      </ThemeContextProvider>
     </ErrorBoundary>
-  )
-}
+  );
+};
 
 export default App;

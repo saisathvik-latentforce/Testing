@@ -1,31 +1,37 @@
-import { useState } from "react";
-import { Box, Toolbar } from "@mui/material";
-import { Outlet } from "react-router-dom";
-import Navbar, { drawerWidthOpen, drawerWidthClosed } from "./Navbar";
+import React, { useState } from 'react';
+import { Box, Toolbar } from '@mui/material';
+import { Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'motion/react';
+
+import Navbar, { drawerWidthOpen, drawerWidthClosed } from './Navbar';
+import PageTransition from './PageTransition';
 
 const Layout = () => {
-  const [open, setOpen] = useState(false); // sidebar state
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
 
   return (
-    <Box sx={{ display: "flex" }}>
-      {/* Navbar (AppBar + Drawer) */}
+    <Box sx={{ display: 'flex' }}>
       <Navbar open={open} setOpen={setOpen} />
 
-      {/* Main content area */}
       <Box
         component="main"
+        id="main-content"
+        tabIndex={-1}
         sx={{
           flexGrow: 1,
-          p: 3,
-          ml: { sm: `${open ? drawerWidthOpen : drawerWidthClosed}px` }, // shift content when drawer opens
-          transition: "margin 0.3s",
+          p: { xs: 1, sm: 3 },
+          ml: { sm: `${open ? drawerWidthOpen : drawerWidthClosed}px` },
+          transition: 'margin 0.3s',
+          outline: 'none',
         }}
       >
-        {/* Keeps spacing below AppBar */}
         <Toolbar />
-
-        {/* Render child routes */}
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
       </Box>
     </Box>
   );

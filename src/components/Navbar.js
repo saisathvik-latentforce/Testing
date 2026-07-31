@@ -1,4 +1,5 @@
-import { useTheme } from "@mui/material/styles";
+import React, { useContext } from 'react';
+import { useTheme } from '@mui/material/styles';
 import {
   AppBar,
   Toolbar,
@@ -15,100 +16,96 @@ import {
   Autocomplete,
   TextField,
   Tooltip,
-} from "@mui/material";
-
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
+  useMediaQuery,
+} from '@mui/material';
 import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   Home as HomeIcon,
   Coffee as CoffeeIcon,
-  PlaylistAdd as PlaylistAddIcon,
   ShoppingCart,
-} from "@mui/icons-material";
+  DarkMode,
+  LightMode,
+} from '@mui/icons-material';
 import DataExplorationSharpIcon from '@mui/icons-material/DataExplorationSharp';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
+import PropTypes from 'prop-types';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
+import { ThemeContext } from '../context/ThemeContext';
+import products from '../assets/coffee';
 
-import { Link } from "react-router-dom";
-import { useMediaQuery } from "@mui/material";
-import { useCart } from "./CartContext";
-import products from "../assets/coffee";
+import { useCart } from './CartContext';
 
 export const drawerWidthOpen = 200;
 export const drawerWidthClosed = 60;
 
+const drawerLinks = [
+  { text: 'Home', link: '/', icon: <HomeIcon />, type: 'route' },
+  { text: 'Coffee', link: '#coffee', icon: <CoffeeIcon />, type: 'anchor' },
+  { text: 'Coffee Stats', link: '/stats', icon: <DataExplorationSharpIcon />, type: 'route' },
+];
+
 const Navbar = ({ open, setOpen }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { cart } = useCart();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const { mode, toggleTheme } = useContext(ThemeContext);
+
   const toggleSidebar = () => setOpen(!open);
 
-  const drawerLinks = [
-    { text: "Home", link: "/", icon: <HomeIcon />, type: "route" },
-    { text: "Coffee", link: "#coffee", icon: <CoffeeIcon />, type: "anchor" },
-    // { text: "Add Item", link: "/newitem", icon: <PlaylistAddIcon />, type: "route" },
-    { text: "Coffee Stats", link: "/stats", icon: <DataExplorationSharpIcon />, type: "route" },
-
-  ];
+  /* map route → BottomNav index */
+  const bottomNavValue = () => {
+    if (location.pathname === '/') return 0;
+    if (location.pathname === '/orders') return 2;
+    if (location.pathname === '/stats') return 3;
+    return 0;
+  };
 
   const drawerContent = (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <List>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <List role="navigation" aria-label="Main navigation">
         {drawerLinks.map((item, index) => (
-          <ListItem key={index} disablePadding sx={{ display: "block" }}>
-            {item.type === "anchor" ? (
-              <Tooltip title={!open ? item.text : ""} placement="right">
+          <ListItem key={index} disablePadding sx={{ display: 'block' }}>
+            <Tooltip title={!open ? item.text : ''} placement="right">
+              {item.type === 'anchor' ? (
                 <ListItemButton
                   component="a"
                   href={item.link}
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? "initial" : "center",
-                    px: 2.5,
-                    transition: "all 0.3s",
-                  }}
+                  sx={{ minHeight: 48, justifyContent: open ? 'initial' : 'center', px: 2.5 }}
                 >
                   <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 2 : "auto",
-                      justifyContent: "center",
-                    }}
+                    sx={{ minWidth: 0, mr: open ? 2 : 'auto', justifyContent: 'center' }}
                   >
                     {item.icon}
                   </ListItemIcon>
                   {open && <ListItemText primary={item.text} />}
                 </ListItemButton>
-              </Tooltip>
-            ) : (
-              <Tooltip title={!open ? item.text : ""} placement="right">
+              ) : (
                 <ListItemButton
                   component={Link}
                   to={item.link}
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? "initial" : "center",
-                    px: 2.5,
-                    transition: "all 0.3s",
-                  }}
+                  sx={{ minHeight: 48, justifyContent: open ? 'initial' : 'center', px: 2.5 }}
                 >
                   <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 2 : "auto",
-                      justifyContent: "center",
-                    }}
+                    sx={{ minWidth: 0, mr: open ? 2 : 'auto', justifyContent: 'center' }}
                   >
                     {item.icon}
                   </ListItemIcon>
                   {open && <ListItemText primary={item.text} />}
                 </ListItemButton>
-              </Tooltip>
-            )}
+              )}
+            </Tooltip>
           </ListItem>
         ))}
       </List>
@@ -116,26 +113,51 @@ const Navbar = ({ open, setOpen }) => {
   );
 
   return (
-    <Box>
+    <>
+      {/* Visually-hidden skip link */}
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: 'absolute',
+          top: -60,
+          left: 8,
+          zIndex: 9999,
+          background: 'primary.main',
+          color: '#fff',
+          padding: '8px 16px',
+          borderRadius: 1,
+          fontWeight: 'bold',
+          transition: 'top 0.2s',
+          '&:focus': { top: 8 },
+        }}
+      >
+        Skip to main content
+      </Box>
+
       {/* AppBar */}
       <AppBar
         position="fixed"
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          zIndex: t => t.zIndex.drawer + 1,
           ml: !isMobile ? `${open ? drawerWidthOpen : drawerWidthClosed}px` : 0,
           width: !isMobile
             ? `calc(100% - ${open ? drawerWidthOpen : drawerWidthClosed}px)`
-            : "100%",
-          transition: "all 0.3s",
+            : '100%',
+          transition: 'all 0.3s',
         }}
       >
         <Toolbar>
-          <IconButton onClick={toggleSidebar} color="inherit">
+          <IconButton
+            onClick={toggleSidebar}
+            color="inherit"
+            aria-label={open ? 'Close navigation' : 'Open navigation'}
+          >
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
 
           <CoffeeIcon sx={{ ml: 1 }} />
-          <Typography variant="h6" noWrap sx={{fontFamily: "Eagle Lake"}}>
+          <Typography variant="h6" noWrap>
             Coffee Shop
           </Typography>
 
@@ -145,16 +167,17 @@ const Navbar = ({ open, setOpen }) => {
           <Autocomplete
             freeSolo
             disableClearable
-            sx={{ width: { xs: '45%', sm: '30%', md: '20%' } }}
-            options={products.map((item) => item.title)}
-            renderInput={(params) => (
+            sx={{ width: { xs: '40%', sm: '30%', md: '20%' } }}
+            options={products.map(item => item.title)}
+            renderInput={params => (
               <TextField
                 {...params}
                 label="Search coffee"
-                size = "small"
+                size="small"
+                inputProps={{ ...params.inputProps, 'aria-label': 'Search coffee products' }}
                 InputProps={{
                   ...params.InputProps,
-                  type: "search",
+                  type: 'search',
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon />
@@ -163,54 +186,57 @@ const Navbar = ({ open, setOpen }) => {
                 }}
               />
             )}
-            onChange={(event, value) => {
+            onChange={(_event, value) => {
               if (value) {
-                const id = value.toLowerCase().replace(/\s+/g, "-");
-                const element = document.getElementById(id);
-                if (element) element.scrollIntoView({ behavior: "smooth" });
+                const el = document.getElementById(value.toLowerCase().replace(/\s+/g, '-'));
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
             }}
           />
 
+          {/* Dark / Light mode toggle */}
+          <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <IconButton
+              color="inherit"
+              onClick={toggleTheme}
+              aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              sx={{ ml: 1 }}
+            >
+              {mode === 'dark' ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          </Tooltip>
+
           {/* Cart */}
-          <IconButton component={Link} to="/orders" color="inherit" sx={{ ml: 2 }}>
-            <Badge badgeContent={itemCount} color="secondary">
-              <ShoppingCart />
-            </Badge>
-          </IconButton>
+          <Tooltip title={`Cart: ${itemCount} item${itemCount !== 1 ? 's' : ''}`}>
+            <IconButton
+              component={Link}
+              to="/orders"
+              color="inherit"
+              aria-label={`Shopping cart, ${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+              sx={{ ml: 1 }}
+            >
+              <Badge badgeContent={itemCount} color="secondary">
+                <ShoppingCart />
+              </Badge>
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar Drawer */}
-      {isMobile ? (
-        <Drawer
-          variant="temporary"
-          open={open}
-          onClose={toggleSidebar}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            "& .MuiDrawer-paper": {
-              width: drawerWidthOpen,
-              backgroundColor: "primary.main",
-              color: "white",
-            },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      ) : (
+      {/* Sidebar Drawer — desktop only */}
+      {!isMobile && (
         <Drawer
           variant="permanent"
           open={open}
           sx={{
             width: open ? drawerWidthOpen : drawerWidthClosed,
             flexShrink: 0,
-            "& .MuiDrawer-paper": {
+            '& .MuiDrawer-paper': {
               width: open ? drawerWidthOpen : drawerWidthClosed,
-              transition: "width 0.3s",
-              overflowX: "hidden",
-              backgroundColor: "primary.main",
-              color: "white",
+              transition: 'width 0.3s',
+              overflowX: 'hidden',
+              backgroundColor: 'primary.main',
+              color: 'white',
             },
           }}
         >
@@ -218,132 +244,74 @@ const Navbar = ({ open, setOpen }) => {
           {drawerContent}
         </Drawer>
       )}
-    </Box>
+
+      {/* Mobile drawer */}
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          open={open}
+          onClose={toggleSidebar}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: drawerWidthOpen,
+              backgroundColor: 'primary.main',
+              color: 'white',
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+
+      {/* Bottom navigation — mobile only */}
+      {isMobile && (
+        <Paper
+          sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: t => t.zIndex.appBar }}
+          elevation={3}
+        >
+          <BottomNavigation
+            value={bottomNavValue()}
+            onChange={(_e, newValue) => {
+              const routes = ['/', '#coffee', '/orders', '/stats'];
+              if (routes[newValue].startsWith('#')) {
+                const el = document.querySelector(routes[newValue]);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                navigate(routes[newValue]);
+              }
+            }}
+          >
+            <BottomNavigationAction label="Home" icon={<HomeIcon />} aria-label="Go to home" />
+            <BottomNavigationAction
+              label="Coffee"
+              icon={<CoffeeIcon />}
+              aria-label="Go to coffee menu"
+            />
+            <BottomNavigationAction
+              label="Cart"
+              icon={
+                <Badge badgeContent={itemCount} color="secondary">
+                  <ShoppingCart />
+                </Badge>
+              }
+              aria-label={`Cart, ${itemCount} items`}
+            />
+            <BottomNavigationAction
+              label="Stats"
+              icon={<BarChartIcon />}
+              aria-label="Go to statistics"
+            />
+          </BottomNavigation>
+        </Paper>
+      )}
+    </>
   );
 };
 
+Navbar.propTypes = {
+  open: PropTypes.bool.isRequired,
+  setOpen: PropTypes.func.isRequired,
+};
+
 export default Navbar;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState } from 'react'
-
-// import CoffeeIcon from '@mui/icons-material/Coffee';
-// import MenuIcon from '@mui/icons-material/Menu';
-// import { ShoppingCart } from "@mui/icons-material";
-// import HomeIcon from '@mui/icons-material/Home';
-// import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
-
-// import { AppBar, Toolbar, Typography, Container, Button,Box, List, ListItem, ListItemButton, ListItemText, IconButton, Badge} from '@mui/material'
-// import { useMediaQuery, Drawer, useTheme } from '@mui/material'
-// import { Link } from 'react-router-dom';
-// import { useCart } from "./CartContext";
-
-// const Navbar = () => {
-//     const [drawerOpen,setDrawerOpen] = useState(false);
-//     const theme = useTheme();
-
-//     const toggleDrawer = (open) => () => {
-//         setDrawerOpen(open)
-//     }
-
-//     const { cart } = useCart();
-
-//     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-//     const drawerLinks = [
-//         {
-//             text: "Home",link:"#home",type:"route"
-//         },
-//         {
-//             text:"Coffee", link:"#coffee",type:"anchor"
-//         },
-//         {
-//             text:"Order", link:"#orders", type:"anchor" 
-//         },
-//         {
-//             text:"Add New Item", link:"/newitem",type:"route"
-//         }
-//     ]
-
-//     return (
-//         <>
-//             <AppBar position="sticky" color="primary">
-//                 <Container >
-//                     <Toolbar>
-//                         <CoffeeIcon />
-//                         <Typography variant="h5" >
-//                             Coffee Shop 
-//                         </Typography>
-                        
-//                         <IconButton color='inherit' onClick={toggleDrawer(true)}>
-//                             <MenuIcon />
-//                         </IconButton>
-                        
-//                         <HomeIcon />
-//                         <Button color="inherit" component={Link} to='/'>
-//                             Home
-//                         </Button>
-
-//                         <Button color="inherit" href='#coffee'>
-//                             Coffee
-//                         </Button>
-
-//                         <PlaylistAddIcon />
-//                         <Button component={Link} color="inherit" to='/newitem'>
-//                             Add New Item
-//                         </Button>
-
-                       
-//                         {/* Cart Icon */}
-//                         <IconButton href='#orders' color="inherit">
-//                             <Badge badgeContent={itemCount} color="secondary">
-//                                 <ShoppingCart />
-//                             </Badge>
-//                         </IconButton>
-//                     </Toolbar>
-//                 </Container>
-//             </AppBar>
-
-//             <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)} sx={{ '& .MuiDrawer-paper': {backgroundColor: 'primary.main', color: 'white'} }}>
-//                 <Box sx={{ width: 200, }}  role="presentation" onClick={toggleDrawer(false)}>
-//                 <List>
-//                     {drawerLinks.map((linkItem, index) => (
-//                     <ListItem key={index} disablePadding>
-//                         {linkItem.type === 'anchor' ? (
-//                         <ListItemButton component="a" href={linkItem.link}>
-//                             <ListItemText primary={linkItem.text} />
-//                         </ListItemButton>
-//                         ) : (
-//                         <ListItemButton component={Link} to={linkItem.link}>
-//                             <ListItemText primary={linkItem.text} />
-//                         </ListItemButton>
-//                         )}
-//                     </ListItem>
-//                     ))}
-//                 </List>
-//                 </Box>
-//             </Drawer>
-//         </>
-//     )
-// }
-
-// export default Navbar
