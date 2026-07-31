@@ -1,0 +1,18 @@
+{
+  "$schema": "https://latentforce.ai/config.json",
+  "mcp": {
+    "lgraph": {
+      "type": "local",
+      "command": [
+        "lgraph",
+        "mcp"
+      ],
+      "enabled": true,
+      "environment": {
+        "LGRAPH_PROJECT_ID": "91e833b5-9e33-4b2c-91a7-cd19fccda31c",
+        "LGRAPH_API_URL": "http://localhost:9000",
+        "LGRAPH_API_KEY": "10618c2e-5c1f-4608-b369-58ae9d0eebc1"
+      }
+    }
+  }
+}

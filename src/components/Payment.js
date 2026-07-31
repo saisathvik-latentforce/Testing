@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Typography,
@@ -7,11 +8,46 @@ import {
   AccordionDetails,
   TextField,
   Button,
+  FormHelperText,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import { useCart } from "./CartContext";
 import { useNavigate } from "react-router-dom";
+
+// Validation helpers
+const validateUPI = (upiId) => {
+  const upiRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/;
+  return upiRegex.test(upiId);
+};
+
+const validateCardNumber = (cardNumber) => {
+  // Remove spaces and check if it's 13-19 digits
+  const cleanNumber = cardNumber.replace(/\s/g, '');
+  return /^\d{13,19}$/.test(cleanNumber);
+};
+
+const validateExpiry = (expiry) => {
+  const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+  if (!expiryRegex.test(expiry)) return false;
+
+  const [month, year] = expiry.split('/');
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear() % 100;
+  const currentMonth = currentDate.getMonth() + 1;
+
+  const expYear = parseInt(year, 10);
+  const expMonth = parseInt(month, 10);
+
+  if (expYear < currentYear) return false;
+  if (expYear === currentYear && expMonth < currentMonth) return false;
+
+  return true;
+};
+
+const validateCVV = (cvv) => {
+  return /^\d{3,4}$/.test(cvv);
+};
 
 // Minimal 21×21 QR matrix with correct position-detection markers
 const QR_MATRIX = [
@@ -66,19 +102,87 @@ const QRCode = ({ size = 168 }) => {
   );
 };
 
+QRCode.propTypes = {
+  size: PropTypes.number,
+};
+
 const Payment = () => {
   const { total, clearCart } = useCart();
   const navigate = useNavigate();
   const [upiId, setUpiId] = useState("");
+  const [upiError, setUpiError] = useState("");
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     expiry: "",
     cvv: "",
   });
+  const [cardErrors, setCardErrors] = useState({
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+  });
+
+  const handleUPIChange = (e) => {
+    const value = e.target.value;
+    setUpiId(value);
+    if (value && !validateUPI(value)) {
+      setUpiError("Invalid UPI ID format (e.g., username@upi)");
+    } else {
+      setUpiError("");
+    }
+  };
+
+  const handleCardNumberChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 19) value = value.slice(0, 19);
+
+    // Add spaces every 4 digits for readability
+    const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+
+    setCardDetails({ ...cardDetails, cardNumber: formattedValue });
+    if (formattedValue && !validateCardNumber(formattedValue)) {
+      setCardErrors({ ...cardErrors, cardNumber: "Card number must be 13-19 digits" });
+    } else {
+      setCardErrors({ ...cardErrors, cardNumber: "" });
+    }
+  };
+
+  const handleExpiryChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 4) value = value.slice(0, 4);
+
+    // Auto-add slash after month
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2);
+    }
+
+    setCardDetails({ ...cardDetails, expiry: value });
+    if (value && !validateExpiry(value)) {
+      setCardErrors({ ...cardErrors, expiry: "Invalid expiry date (MM/YY)" });
+    } else {
+      setCardErrors({ ...cardErrors, expiry: "" });
+    }
+  };
+
+  const handleCVVChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 4) value = value.slice(0, 4);
+
+    setCardDetails({ ...cardDetails, cvv: value });
+    if (value && !validateCVV(value)) {
+      setCardErrors({ ...cardErrors, cvv: "CVV must be 3-4 digits" });
+    } else {
+      setCardErrors({ ...cardErrors, cvv: "" });
+    }
+  };
 
   const handleUPIPayment = () => {
     if (!upiId) {
-      alert("Please enter your UPI ID.");
+      setUpiError("Please enter your UPI ID");
+      return;
+    }
+    if (!validateUPI(upiId)) {
+      setUpiError("Invalid UPI ID format");
       return;
     }
     alert(`✅ UPI Payment of $${total.toFixed(2)} successful!`);
@@ -87,17 +191,37 @@ const Payment = () => {
   };
 
   const handleCardPayment = () => {
-    if (!cardDetails.cardNumber || !cardDetails.expiry || !cardDetails.cvv) {
-      alert("Please fill all card details.");
+    const errors = {};
+    if (!cardDetails.cardNumber) {
+      errors.cardNumber = "Card number is required";
+    } else if (!validateCardNumber(cardDetails.cardNumber)) {
+      errors.cardNumber = "Invalid card number";
+    }
+
+    if (!cardDetails.expiry) {
+      errors.expiry = "Expiry date is required";
+    } else if (!validateExpiry(cardDetails.expiry)) {
+      errors.expiry = "Invalid or expired date";
+    }
+
+    if (!cardDetails.cvv) {
+      errors.cvv = "CVV is required";
+    } else if (!validateCVV(cardDetails.cvv)) {
+      errors.cvv = "Invalid CVV";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCardErrors(errors);
       return;
     }
+
     alert(`✅ Card Payment of $${total.toFixed(2)} successful!`);
     clearCart();
     navigate("/");
   };
 
   const handleScannerPayment = () => {
-    alert(`✅ Scanner Payment of ₹${total.toFixed(2)} successful!`);
+    alert(`✅ Scanner Payment of $${total.toFixed(2)} successful!`);
     clearCart();
     navigate("/");
   };
@@ -125,7 +249,9 @@ const Payment = () => {
             label="UPI ID"
             fullWidth
             value={upiId}
-            onChange={(e) => setUpiId(e.target.value)}
+            onChange={handleUPIChange}
+            error={!!upiError}
+            helperText={upiError}
             sx={{ mb: 2 }}
           />
           <Button
@@ -133,8 +259,9 @@ const Payment = () => {
             color="primary"
             fullWidth
             onClick={handleUPIPayment}
+            disabled={!!upiError || !upiId}
           >
-            Pay ₹{total.toFixed(2)} via UPI
+            Pay ${total.toFixed(2)} via UPI
           </Button>
         </AccordionDetails>
       </Accordion>
@@ -152,26 +279,29 @@ const Payment = () => {
             label="Card Number"
             fullWidth
             value={cardDetails.cardNumber}
-            onChange={(e) =>
-              setCardDetails({ ...cardDetails, cardNumber: e.target.value })
-            }
+            onChange={handleCardNumberChange}
+            error={!!cardErrors.cardNumber}
+            helperText={cardErrors.cardNumber}
+            placeholder="1234 5678 9012 3456"
             sx={{ mb: 2 }}
           />
           <Box sx={{ display: "flex", gap: 2 }}>
             <TextField
               label="Expiry (MM/YY)"
               value={cardDetails.expiry}
-              onChange={(e) =>
-                setCardDetails({ ...cardDetails, expiry: e.target.value })
-              }
+              onChange={handleExpiryChange}
+              error={!!cardErrors.expiry}
+              helperText={cardErrors.expiry}
+              placeholder="MM/YY"
               sx={{ flex: 1 }}
             />
             <TextField
               label="CVV"
               value={cardDetails.cvv}
-              onChange={(e) =>
-                setCardDetails({ ...cardDetails, cvv: e.target.value })
-              }
+              onChange={handleCVVChange}
+              error={!!cardErrors.cvv}
+              helperText={cardErrors.cvv}
+              placeholder="123"
               sx={{ flex: 1 }}
               type="password"
             />
@@ -183,8 +313,9 @@ const Payment = () => {
             fullWidth
             sx={{ mt: 2 }}
             onClick={handleCardPayment}
+            disabled={!!cardErrors.cardNumber || !!cardErrors.expiry || !!cardErrors.cvv}
           >
-            Pay ₹{total.toFixed(2)} via Card
+            Pay ${total.toFixed(2)} via Card
           </Button>
         </AccordionDetails>
       </Accordion>
@@ -211,7 +342,7 @@ const Payment = () => {
             color="text.secondary"
             mb={2}
           >
-            Amount: ₹{total.toFixed(2)}
+            Amount: ${total.toFixed(2)}
           </Typography>
           <Button
             variant="contained"
