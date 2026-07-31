@@ -1,8 +1,26 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+describe('App', () => {
+  test('renders the coffee shop application', () => {
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    );
+
+    // Check for the main heading
+    const headingElement = screen.getByText(/featured coffees/i);
+    expect(headingElement).toBeInTheDocument();
+  });
+
+  test('renders without crashing', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    );
+    expect(container).toBeTruthy();
+  });
 });
