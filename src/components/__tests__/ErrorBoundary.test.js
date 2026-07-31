@@ -1,66 +1,71 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { ThemeProvider } from '@mui/material';
+
+import { lightTheme } from '../../assets/theme';
 import ErrorBoundary from '../ErrorBoundary';
 
-// Component that throws an error
 const ThrowError = ({ shouldThrow }) => {
-  if (shouldThrow) {
-    throw new Error('Test error');
-  }
+  if (shouldThrow) throw new Error('Test error');
   return <div>No error</div>;
 };
+ThrowError.propTypes = { shouldThrow: PropTypes.bool };
+ThrowError.defaultProps = { shouldThrow: false };
 
-const consoleError = console.error;
-
+const originalConsoleError = console.error; // eslint-disable-line no-console
 beforeAll(() => {
-  // Suppress console.error for expected errors
   console.error = jest.fn();
-});
-
+}); // eslint-disable-line no-console
 afterAll(() => {
-  console.error = consoleError;
-});
+  console.error = originalConsoleError;
+}); // eslint-disable-line no-console
+
+const wrap = ui => render(<ThemeProvider theme={lightTheme}>{ui}</ThemeProvider>);
 
 describe('ErrorBoundary', () => {
-  test('renders children when there is no error', () => {
-    render(
+  test('renders children when no error', () => {
+    wrap(
       <ErrorBoundary>
-        <div data-testid="child">Child content</div>
+        <div data-testid="child">Child</div>
       </ErrorBoundary>
     );
-
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
 
-  test('renders error UI when child throws', () => {
-    render(
+  test('renders fallback UI when child throws', () => {
+    wrap(
       <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
+        <ThrowError shouldThrow />
       </ErrorBoundary>
     );
-
     expect(screen.getByText(/oops! something went wrong/i)).toBeInTheDocument();
-    expect(screen.getByText(/go home/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go home/i })).toBeInTheDocument();
   });
 
-  test('reset button redirects to home', () => {
-    // Mock window.location
-    const originalLocation = window.location;
-    delete window.location;
-    window.location = { href: '' };
+  test('Go Home button sets window.location.href', () => {
+    const assignSpy = jest.spyOn(window, 'location', 'get').mockReturnValue({ href: '' });
+    let capturedHref = '';
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      get: () => ({
+        get href() {
+          return capturedHref;
+        },
+        set href(val) {
+          capturedHref = val;
+        },
+      }),
+    });
 
-    render(
+    wrap(
       <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
+        <ThrowError shouldThrow />
       </ErrorBoundary>
     );
+    fireEvent.click(screen.getByRole('button', { name: /go home/i }));
+    expect(capturedHref).toBe('/');
 
-    const resetButton = screen.getByText(/go home/i);
-    fireEvent.click(resetButton);
-
-    expect(window.location.href).toBe('/');
-
-    // Restore window.location
-    window.location = originalLocation;
+    assignSpy.mockRestore();
   });
 });
