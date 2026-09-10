@@ -36,14 +36,22 @@ describe('AddCoffeeDialog', () => {
     expect(screen.getByRole('button', { name: /add coffee/i })).toBeDisabled();
   });
 
-  test('Add Coffee button is enabled when title and price are filled', async () => {
+  test('Add Coffee button stays disabled without a vendor', async () => {
     renderDialog();
     await userEvent.type(screen.getByLabelText(/title/i), 'Test Coffee');
     await userEvent.type(screen.getByLabelText(/price/i), '5.99');
+    expect(screen.getByRole('button', { name: /add coffee/i })).toBeDisabled();
+  });
+
+  test('Add Coffee button is enabled when title, price, and vendor are filled', async () => {
+    renderDialog();
+    await userEvent.type(screen.getByLabelText(/title/i), 'Test Coffee');
+    await userEvent.type(screen.getByLabelText(/price/i), '5.99');
+    await userEvent.type(screen.getByLabelText(/vendor/i), 'Blue Bottle');
     expect(screen.getByRole('button', { name: /add coffee/i })).not.toBeDisabled();
   });
 
-  test('calls onAdd with correct data on submit', async () => {
+  test('calls onAdd with correct data, including vendor, on submit', async () => {
     const onAdd = jest.fn();
     const onClose = jest.fn();
     renderDialog({ onAdd, onClose });
@@ -51,6 +59,7 @@ describe('AddCoffeeDialog', () => {
     await userEvent.type(screen.getByLabelText(/title/i), 'Test Coffee');
     await userEvent.type(screen.getByLabelText(/price/i), '5.99');
     await userEvent.type(screen.getByLabelText(/description/i), 'Tasty');
+    await userEvent.type(screen.getByLabelText(/vendor/i), 'Blue Bottle');
 
     fireEvent.click(screen.getByRole('button', { name: /add coffee/i }));
 
@@ -61,10 +70,19 @@ describe('AddCoffeeDialog', () => {
           price: 5.99,
           description: 'Tasty',
           itemsSold: 0,
+          vendor: 'Blue Bottle',
         })
       )
     );
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
+  test('offers existing vendors as selectable options', async () => {
+    renderDialog({ vendors: ['Blue Bottle', 'Stumptown Roasters'] });
+    const vendorInput = screen.getByLabelText(/vendor/i);
+    await userEvent.click(vendorInput);
+    expect(screen.getByText('Blue Bottle')).toBeInTheDocument();
+    expect(screen.getByText('Stumptown Roasters')).toBeInTheDocument();
   });
 
   test('generates a unique id for each new coffee', async () => {
@@ -72,6 +90,7 @@ describe('AddCoffeeDialog', () => {
     renderDialog({ onAdd });
     await userEvent.type(screen.getByLabelText(/title/i), 'Latte');
     await userEvent.type(screen.getByLabelText(/price/i), '6');
+    await userEvent.type(screen.getByLabelText(/vendor/i), 'Blue Bottle');
     fireEvent.click(screen.getByRole('button', { name: /add coffee/i }));
     await waitFor(() => expect(onAdd).toHaveBeenCalled());
     const { id } = onAdd.mock.calls[0][0];
@@ -82,9 +101,12 @@ describe('AddCoffeeDialog', () => {
   test('resets form after submit', async () => {
     renderDialog();
     const titleInput = screen.getByLabelText(/title/i);
+    const vendorInput = screen.getByLabelText(/vendor/i);
     await userEvent.type(titleInput, 'Espresso');
     await userEvent.type(screen.getByLabelText(/price/i), '4');
+    await userEvent.type(vendorInput, 'Blue Bottle');
     fireEvent.click(screen.getByRole('button', { name: /add coffee/i }));
     await waitFor(() => expect(titleInput).toHaveValue(''));
+    expect(vendorInput).toHaveValue('');
   });
 });

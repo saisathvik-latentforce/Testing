@@ -79,8 +79,9 @@ const Order = () => {
                 alignItems: 'center',
                 mb: 1.5,
                 p: 1,
-                '&:hover': { boxShadow: 4 },
-                transition: 'box-shadow 0.2s',
+                border: '1px solid transparent',
+                transition: 'border-color 0.2s',
+                '&:hover': { borderColor: 'primary.main' },
               }}
             >
               {item.image && (

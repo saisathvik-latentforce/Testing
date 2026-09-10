@@ -9,6 +9,7 @@ import {
   LinearProgress,
   Fade,
 } from '@mui/material';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { DataGrid } from '@mui/x-data-grid';
 import { BarChart } from '@mui/x-charts/BarChart';
 
@@ -47,6 +48,10 @@ const CoffeeStats = () => {
 
   const totalUnitsSold = displayedRows.reduce((s, r) => s + r.itemsSold, 0);
   const totalRevenue = displayedRows.reduce((s, r) => s + r.itemsSold * r.price, 0);
+  const topSeller = useMemo(() => {
+    if (displayedRows.length === 0) return null;
+    return displayedRows.reduce((best, r) => (r.itemsSold > best.itemsSold ? r : best), displayedRows[0]);
+  }, [displayedRows]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -56,7 +61,24 @@ const CoffeeStats = () => {
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         {ready ? (
           <>
-            <Card sx={{ flex: 1 }}>
+            <Card
+              sx={{
+                flex: 1,
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: 5,
+                  height: '100%',
+                  backgroundColor: 'primary.main',
+                },
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" color="text.secondary">
                   Total Units Sold
@@ -66,7 +88,24 @@ const CoffeeStats = () => {
                 </Typography>
               </CardContent>
             </Card>
-            <Card sx={{ flex: 1 }}>
+            <Card
+              sx={{
+                flex: 1,
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: 5,
+                  height: '100%',
+                  backgroundColor: 'secondary.main',
+                },
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" color="text.secondary">
                   Total Revenue
@@ -76,10 +115,45 @@ const CoffeeStats = () => {
                 </Typography>
               </CardContent>
             </Card>
+            <Card
+              sx={{
+                flex: 1,
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: 5,
+                  height: '100%',
+                  backgroundColor: 'success.main',
+                },
+              }}
+            >
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <EmojiEventsIcon color="success" fontSize="small" />
+                  <Typography variant="h6" color="text.secondary">
+                    Top Seller
+                  </Typography>
+                </Stack>
+                <Typography variant="h5" fontWeight="bold" noWrap>
+                  {topSeller ? topSeller.typeOfCoffee : '—'}
+                </Typography>
+                {topSeller && (
+                  <Typography variant="body2" color="text.secondary">
+                    {topSeller.itemsSold} units sold
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
           </>
         ) : (
           <>
-            {[0, 1].map(i => (
+            {[0, 1, 2].map(i => (
               <Card key={i} sx={{ flex: 1 }}>
                 <CardContent>
                   <Skeleton variant="text" width="60%" />
@@ -106,7 +180,8 @@ const CoffeeStats = () => {
               flex: 1,
               height: 400,
               borderRadius: 2,
-              boxShadow: 3,
+              border: t => `1px solid ${t.palette.divider}`,
+              boxShadow: t => `0 10px 30px -12px ${t.palette.primary.main}33`,
               backgroundColor: 'background.paper',
               p: 2,
             }}
@@ -127,8 +202,9 @@ const CoffeeStats = () => {
               height: 400,
               p: 2,
               borderRadius: 2,
+              border: t => `1px solid ${t.palette.divider}`,
               backgroundColor: 'background.paper',
-              boxShadow: 3,
+              boxShadow: t => `0 10px 30px -12px ${t.palette.primary.main}33`,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',

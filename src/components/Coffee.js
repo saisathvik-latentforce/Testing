@@ -34,6 +34,19 @@ const Coffee = () => {
   const [products, setProducts] = useState(productsData);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
+  const [activeVendorFilters, setActiveVendorFilters] = useState([]);
+
+  const vendors = [...new Set(products.map(p => p.vendor))];
+  const visibleProducts =
+    activeVendorFilters.length === 0
+      ? products
+      : products.filter(p => activeVendorFilters.includes(p.vendor));
+
+  const toggleVendorFilter = vendor => {
+    setActiveVendorFilters(prev =>
+      prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
+    );
+  };
 
   const [activeStates, setActiveStates] = useState(
     productsData.reduce((acc, p) => {
@@ -63,6 +76,26 @@ const Coffee = () => {
         Featured Coffees
       </Typography>
 
+      {!loading && vendors.length > 0 && (
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{ flexWrap: 'wrap', justifyContent: 'center', px: 3 }}
+        >
+          {vendors.map(vendor => (
+            <Chip
+              key={vendor}
+              label={vendor}
+              clickable
+              color={activeVendorFilters.includes(vendor) ? 'primary' : 'default'}
+              variant={activeVendorFilters.includes(vendor) ? 'filled' : 'outlined'}
+              onClick={() => toggleVendorFilter(vendor)}
+            />
+          ))}
+        </Stack>
+      )}
+
       <Grid container spacing={3} sx={{ padding: 3, justifyContent: 'center' }}>
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
@@ -70,7 +103,7 @@ const Coffee = () => {
                 <CoffeeCardSkeleton />
               </Grid>
             ))
-          : products.map(product => {
+          : visibleProducts.map(product => {
               const isActive = activeStates[product.id];
               return (
                 <Grid item xs={12} sm={6} md={4} key={product.id}>
@@ -83,8 +116,11 @@ const Coffee = () => {
                       textAlign: 'center',
                       padding: 2,
                       border: '2px solid transparent',
-                      transition: 'border-color 0.3s, box-shadow 0.3s',
-                      '&:hover': { borderColor: 'primary.main', boxShadow: 8 },
+                      transition: 'border-color 0.3s, box-shadow 0.3s, transform 0.3s',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        boxShadow: t => `0 16px 36px -12px ${t.palette.primary.main}66`,
+                      },
                     }}
                   >
                     <CardMedia
@@ -170,6 +206,7 @@ const Coffee = () => {
 
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Stack direction="row" spacing={1} useFlexGap justifyContent="center">
+                          <Chip size="small" label={product.vendor} variant="outlined" color="primary" />
                           <Chip
                             size="small"
                             label={isActive ? 'Active' : 'Out of Stock'}
@@ -209,6 +246,7 @@ const Coffee = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onAdd={handleAddCoffee}
+        vendors={vendors}
       />
     </Box>
   );

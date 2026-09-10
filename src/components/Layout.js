@@ -20,10 +20,14 @@ const Layout = () => {
         tabIndex={-1}
         sx={{
           flexGrow: 1,
+          position: 'relative',
           p: { xs: 1, sm: 3 },
           ml: { sm: `${open ? drawerWidthOpen : drawerWidthClosed}px` },
           transition: 'margin 0.3s',
           outline: 'none',
+          backgroundImage: t =>
+            `radial-gradient(circle at 100% 0%, ${t.palette.primary.main}0d 0%, transparent 45%)`,
+          backgroundAttachment: 'fixed',
         }}
       >
         <Toolbar />
