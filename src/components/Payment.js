@@ -289,7 +289,19 @@ const Payment = () => {
           <Typography variant="body2" textAlign="center" mb={2}>
             Scan the QR code with any UPI app (GPay, PhonePe, Paytm…)
           </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mb: 1,
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: 'background.paper',
+              boxShadow: t => `0 10px 30px -12px ${t.palette.primary.main}40`,
+              width: 'fit-content',
+              mx: 'auto',
+            }}
+          >
             <QRCode size={168} />
           </Box>
           <Typography

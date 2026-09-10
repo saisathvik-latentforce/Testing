@@ -1,12 +1,13 @@
 import React from 'react';
 import { Typography, Box, Stack, Button, Container } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
 import Espresso from '../assets/espresso-coffee.png';
 
 const Hero = () => (
   <Box
     sx={{
-      background: 'linear-gradient(135deg, #f9f3ec 0%, #ede0d0 100%)',
+      background: 'radial-gradient(circle at 85% 20%, #f3e3cb 0%, #f9f3ec 45%, #ede0d0 100%)',
       minHeight: '85vh',
       display: 'flex',
       alignItems: 'center',
@@ -14,6 +15,34 @@ const Hero = () => (
       overflow: 'hidden',
     }}
   >
+    {/* Ambient glow accents — decorative */}
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: 'absolute',
+        top: '-10%',
+        right: '-5%',
+        width: 420,
+        height: 420,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(122,74,16,0.18) 0%, transparent 70%)',
+        filter: 'blur(20px)',
+      }}
+    />
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: 'absolute',
+        bottom: '-15%',
+        left: '-8%',
+        width: 360,
+        height: 360,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(22,74,37,0.14) 0%, transparent 70%)',
+        filter: 'blur(20px)',
+      }}
+    />
+
     {/* Mobile background image — decorative, hidden from screen readers */}
     <Box
       aria-hidden="true"
@@ -47,7 +76,16 @@ const Hero = () => (
             alignItems: 'center',
           }}
         >
-          <Typography variant="h1" sx={{ fontSize: { xs: '2.4rem', md: '4rem' } }}>
+          <Typography
+            variant="h1"
+            sx={{
+              fontSize: { xs: '2.4rem', md: '4rem' },
+              background: 'linear-gradient(135deg, #5c3609 0%, #7a4a10 60%, #a06a1f 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             Coffee For All
           </Typography>
           <Typography
@@ -62,7 +100,19 @@ const Hero = () => (
             color="secondary"
             href="#coffee"
             size="large"
-            sx={{ mt: 1, py: 1.5, px: 4, minHeight: 48 }}
+            sx={{
+              mt: 1.5,
+              py: 1.5,
+              px: 4.5,
+              minHeight: 48,
+              fontSize: '1rem',
+              borderRadius: 3,
+              transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 8px 20px -6px rgba(122,74,16,0.45)',
+              },
+            }}
           >
             Order Now
           </Button>
@@ -85,6 +135,34 @@ const Hero = () => (
         </Box>
       </Stack>
     </Container>
+
+    {/* Scroll-to-explore hint — desktop only, decorative */}
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: 'absolute',
+        bottom: 24,
+        left: '50%',
+        display: { xs: 'none', md: 'flex' },
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 0.5,
+        color: 'text.secondary',
+        opacity: 0,
+        animation: 'scrollHint 1.8s ease-in-out 1s infinite, scrollFade 0.6s ease 0.8s forwards',
+        '@keyframes scrollHint': {
+          '0%, 100%': { transform: 'translate(-50%, 0)' },
+          '50%': { transform: 'translate(-50%, 8px)' },
+        },
+        '@keyframes scrollFade': {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 0.7 },
+        },
+      }}
+    >
+      <Typography variant="caption">Scroll to explore</Typography>
+      <ExpandMoreIcon fontSize="small" />
+    </Box>
   </Box>
 );
 

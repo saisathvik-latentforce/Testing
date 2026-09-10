@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Box, Typography, Button, Paper, Divider, Stack } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { motion } from 'motion/react';
@@ -47,6 +47,17 @@ const PaymentSuccess = () => {
   const location = useLocation();
   const { method, amount, items = [] } = location.state || {};
 
+  const orderId = useMemo(() => `CF-${Date.now().toString().slice(-6)}`, []);
+  const orderDate = useMemo(
+    () =>
+      new Date().toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+    []
+  );
+
   useEffect(() => {
     if (!method) navigate('/');
   }, [method, navigate]);
@@ -69,25 +80,65 @@ const PaymentSuccess = () => {
         transition={{ duration: 0.5, type: 'spring', stiffness: 120 }}
         sx={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 480 }}
       >
-        <Paper elevation={6} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-          <MotionIcon
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            sx={{ fontSize: 80, color: 'success.main', mb: 2 }}
-          />
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            textAlign: 'center',
+            boxShadow: t => `0 20px 50px -15px ${t.palette.success.main}55`,
+          }}
+        >
+          <Box
+            sx={{
+              width: 96,
+              height: 96,
+              mx: 'auto',
+              mb: 2,
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              background: t => `radial-gradient(circle, ${t.palette.success.main}22 0%, transparent 75%)`,
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                border: t => `2px solid ${t.palette.success.main}`,
+                opacity: 0,
+                animation: 'pulseRing 1.8s ease-out infinite',
+                '@keyframes pulseRing': {
+                  '0%': { transform: 'scale(0.85)', opacity: 0.7 },
+                  '70%': { transform: 'scale(1.5)', opacity: 0 },
+                  '100%': { transform: 'scale(1.5)', opacity: 0 },
+                },
+              },
+            }}
+          >
+            <MotionIcon
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+              sx={{ fontSize: 80, color: 'success.main' }}
+            />
+          </Box>
           <Typography variant="h4" gutterBottom>
             Payment Successful!
           </Typography>
-          <Typography variant="body1" color="text.secondary" mb={3}>
+          <Typography variant="body1" color="text.secondary" mb={1}>
             Your order has been placed via <strong>{method}</strong>.
+          </Typography>
+          <Typography variant="body2" color="text.disabled" mb={3}>
+            Order ref <strong>#{orderId}</strong> &middot; {orderDate}
           </Typography>
 
           {items.length > 0 && (
             <>
               <Divider sx={{ mb: 2 }} />
               <Typography variant="subtitle1" fontWeight="bold" mb={1} textAlign="left">
-                Order Summary
+                Order Summary <span style={{ color: 'text.disabled', fontWeight: 'normal', fontSize: '0.85em' }}>#{orderId}</span>
               </Typography>
               <Stack spacing={0.5} mb={2}>
                 {items.map(item => (

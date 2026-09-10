@@ -10,17 +10,19 @@ import {
   Stack,
   Typography,
   Box,
+  Autocomplete,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
+const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [imageFileName, setImageFileName] = useState('');
+  const [vendor, setVendor] = useState('');
 
   const handleImageChange = e => {
     const file = e.target.files[0];
@@ -38,6 +40,7 @@ const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
       price: parseFloat(price),
       image,
       itemsSold: 0,
+      vendor: vendor.trim(),
     });
     onClose();
     setTitle('');
@@ -45,6 +48,7 @@ const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
     setPrice('');
     setImage(null);
     setImageFileName('');
+    setVendor('');
   };
 
   return (
@@ -55,16 +59,16 @@ const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
       PaperProps={{
         sx: {
           width: 420,
-          border: '2px solid',
-          borderColor: 'primary.main',
-          borderRadius: 2,
+          borderRadius: 3,
           p: 2,
+          boxShadow: t => `0 24px 60px -20px ${t.palette.primary.main}55`,
         },
       }}
     >
       <DialogTitle id="add-coffee-dialog-title" sx={{ textAlign: 'center', mb: 1 }}>
         Add New Coffee
       </DialogTitle>
+      <Box sx={{ height: 3, mx: 3, mb: 1, borderRadius: 1, backgroundImage: t => `linear-gradient(90deg, ${t.palette.primary.main}, ${t.palette.secondary.main})` }} />
 
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
@@ -92,6 +96,22 @@ const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
             required
             type="number"
             inputProps={{ 'aria-required': true, min: 0, step: 0.01 }}
+          />
+          <Autocomplete
+            freeSolo
+            options={vendors}
+            value={vendor}
+            onChange={(_, newValue) => setVendor(newValue || '')}
+            onInputChange={(_, newInputValue) => setVendor(newInputValue)}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label="Vendor"
+                required
+                fullWidth
+                inputProps={{ ...params.inputProps, 'aria-required': true }}
+              />
+            )}
           />
 
           {/* Image upload with preview */}
@@ -129,7 +149,12 @@ const AddCoffeeDialog = ({ open, onClose, onAdd }) => {
         <Button onClick={onClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleAdd} variant="contained" color="primary" disabled={!title || !price}>
+        <Button
+          onClick={handleAdd}
+          variant="contained"
+          color="primary"
+          disabled={!title || !price || !vendor.trim()}
+        >
           Add Coffee
         </Button>
       </DialogActions>
@@ -141,6 +166,7 @@ AddCoffeeDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onAdd: PropTypes.func.isRequired,
+  vendors: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default AddCoffeeDialog;

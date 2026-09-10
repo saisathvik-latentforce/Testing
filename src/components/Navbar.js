@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import {
   AppBar,
   Toolbar,
@@ -72,6 +72,17 @@ const Navbar = ({ open, setOpen }) => {
     return 0;
   };
 
+  const navButtonSx = {
+    minHeight: 48,
+    justifyContent: open ? 'initial' : 'center',
+    px: 2.5,
+    mx: 1,
+    my: 0.5,
+    borderRadius: 2,
+    transition: 'background-color 0.2s, transform 0.2s',
+    '&:hover': { backgroundColor: alpha('#fff', 0.12), transform: 'translateX(2px)' },
+  };
+
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <List role="navigation" aria-label="Main navigation">
@@ -79,11 +90,7 @@ const Navbar = ({ open, setOpen }) => {
           <ListItem key={index} disablePadding sx={{ display: 'block' }}>
             <Tooltip title={!open ? item.text : ''} placement="right">
               {item.type === 'anchor' ? (
-                <ListItemButton
-                  component="a"
-                  href={item.link}
-                  sx={{ minHeight: 48, justifyContent: open ? 'initial' : 'center', px: 2.5 }}
-                >
+                <ListItemButton component="a" href={item.link} sx={navButtonSx}>
                   <ListItemIcon
                     sx={{ minWidth: 0, mr: open ? 2 : 'auto', justifyContent: 'center' }}
                   >
@@ -95,7 +102,16 @@ const Navbar = ({ open, setOpen }) => {
                 <ListItemButton
                   component={Link}
                   to={item.link}
-                  sx={{ minHeight: 48, justifyContent: open ? 'initial' : 'center', px: 2.5 }}
+                  sx={{
+                    ...navButtonSx,
+                    ...(item.link === location.pathname && {
+                      backgroundColor: alpha('#fff', 0.22),
+                      borderLeft: '3px solid #fff',
+                      borderRadius: 1,
+                      pl: 1.5,
+                      '&:hover': { backgroundColor: alpha('#fff', 0.28) },
+                    }),
+                  }}
                 >
                   <ListItemIcon
                     sx={{ minWidth: 0, mr: open ? 2 : 'auto', justifyContent: 'center' }}
@@ -157,7 +173,7 @@ const Navbar = ({ open, setOpen }) => {
           </IconButton>
 
           <CoffeeIcon sx={{ ml: 1 }} />
-          <Typography variant="h6" noWrap>
+          <Typography variant="h6" noWrap sx={{ letterSpacing: 0.5 }}>
             Coffee Shop
           </Typography>
 
@@ -180,9 +196,21 @@ const Navbar = ({ open, setOpen }) => {
                   type: 'search',
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon />
+                      <SearchIcon fontSize="small" />
                     </InputAdornment>
                   ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: alpha('#fff', 0.15),
+                    borderRadius: 2,
+                    '& fieldset': { borderColor: alpha('#fff', 0.3) },
+                    '&:hover fieldset': { borderColor: alpha('#fff', 0.5) },
+                    '&.Mui-focused fieldset': { borderColor: '#fff' },
+                  },
+                  '& .MuiInputLabel-root': { color: alpha('#fff', 0.8) },
+                  '& .MuiInputBase-input': { color: '#fff' },
+                  '& .MuiSvgIcon-root': { color: alpha('#fff', 0.8) },
                 }}
               />
             )}
@@ -200,7 +228,11 @@ const Navbar = ({ open, setOpen }) => {
               color="inherit"
               onClick={toggleTheme}
               aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              sx={{ ml: 1 }}
+              sx={{
+                ml: 1,
+                transition: 'transform 0.4s',
+                '&:hover': { transform: 'rotate(20deg)' },
+              }}
             >
               {mode === 'dark' ? <LightMode /> : <DarkMode />}
             </IconButton>
@@ -235,8 +267,10 @@ const Navbar = ({ open, setOpen }) => {
               width: open ? drawerWidthOpen : drawerWidthClosed,
               transition: 'width 0.3s',
               overflowX: 'hidden',
-              backgroundColor: 'primary.main',
+              backgroundImage: t =>
+                `linear-gradient(165deg, ${t.palette.primary.main} 0%, ${alpha(t.palette.primary.dark || t.palette.primary.main, 0.85)} 100%)`,
               color: 'white',
+              borderRight: 'none',
             },
           }}
         >
@@ -255,7 +289,8 @@ const Navbar = ({ open, setOpen }) => {
           sx={{
             '& .MuiDrawer-paper': {
               width: drawerWidthOpen,
-              backgroundColor: 'primary.main',
+              backgroundImage: t =>
+                `linear-gradient(165deg, ${t.palette.primary.main} 0%, ${alpha(t.palette.primary.dark || t.palette.primary.main, 0.85)} 100%)`,
               color: 'white',
             },
           }}

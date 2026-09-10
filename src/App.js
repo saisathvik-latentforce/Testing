@@ -1,6 +1,6 @@
 import React from 'react';
 import '@fontsource/roboto';
-import { ThemeProvider } from '@mui/material';
+import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -19,6 +19,7 @@ const ThemedApp = () => {
   const { theme } = React.useContext(ThemeContext);
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Routes>
         <Route element={<Layout />}>
           <Route

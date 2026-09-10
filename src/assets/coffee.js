@@ -13,6 +13,7 @@ const products = [
     price: 5.99,
     description: 'A strong and bold espresso shot to kickstart your day.',
     itemsSold: 34,
+    vendor: 'Blue Bottle',
   },
   {
     id: 2,
@@ -21,6 +22,7 @@ const products = [
     price: 6.99,
     description: 'A creamy cappuccino with a perfect blend of espresso and milk foam.',
     itemsSold: 10,
+    vendor: 'Blue Bottle',
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ const products = [
     price: 7.49,
     description: 'A smooth and creamy latte made with steamed milk and espresso.',
     itemsSold: 87,
+    vendor: 'Stumptown Roasters',
   },
   {
     id: 4,
@@ -37,6 +40,7 @@ const products = [
     price: 14.99,
     image: Ethiopian,
     itemsSold: 64,
+    vendor: 'Counter Culture Coffee',
   },
   {
     id: 5,
@@ -45,6 +49,7 @@ const products = [
     price: 12.49,
     image: Colombian,
     itemsSold: 23,
+    vendor: 'Counter Culture Coffee',
   },
   {
     id: 6,
@@ -53,6 +58,7 @@ const products = [
     price: 15.0,
     image: Gautemal,
     itemsSold: 45,
+    vendor: 'Stumptown Roasters',
   },
 ];
 
