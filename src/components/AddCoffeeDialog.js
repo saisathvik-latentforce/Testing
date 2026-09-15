@@ -23,12 +23,26 @@ const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
   const [image, setImage] = useState(null);
   const [imageFileName, setImageFileName] = useState('');
   const [vendor, setVendor] = useState('');
+  const [imageError, setImageError] = useState('');
 
   const handleImageChange = e => {
     const file = e.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
-      setImageFileName(file.name);
+      if (!file.type.startsWith('image/')) {
+        setImageError('Please choose an image file.');
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        setImageError('Image must be smaller than 2 MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImage(reader.result);
+        setImageFileName(file.name);
+        setImageError('');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -48,6 +62,7 @@ const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
     setPrice('');
     setImage(null);
     setImageFileName('');
+    setImageError('');
     setVendor('');
   };
 
@@ -56,11 +71,12 @@ const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
       open={open}
       onClose={onClose}
       aria-labelledby="add-coffee-dialog-title"
+      maxWidth="sm"
+      fullWidth
       PaperProps={{
         sx: {
-          width: 420,
           borderRadius: 3,
-          p: 2,
+          p: { xs: 0.5, sm: 2 },
           boxShadow: t => `0 24px 60px -20px ${t.palette.primary.main}55`,
         },
       }}
@@ -68,7 +84,16 @@ const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
       <DialogTitle id="add-coffee-dialog-title" sx={{ textAlign: 'center', mb: 1 }}>
         Add New Coffee
       </DialogTitle>
-      <Box sx={{ height: 3, mx: 3, mb: 1, borderRadius: 1, backgroundImage: t => `linear-gradient(90deg, ${t.palette.primary.main}, ${t.palette.secondary.main})` }} />
+      <Box
+        sx={{
+          height: 3,
+          mx: 3,
+          mb: 1,
+          borderRadius: 1,
+          backgroundImage: t =>
+            `linear-gradient(90deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
+        }}
+      />
 
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
@@ -120,6 +145,12 @@ const AddCoffeeDialog = ({ open, onClose, onAdd, vendors = [] }) => {
               {imageFileName ? 'Change Image' : 'Upload Image'}
               <input type="file" hidden accept="image/*" onChange={handleImageChange} />
             </Button>
+
+            {imageError && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.75, display: 'block' }}>
+                {imageError}
+              </Typography>
+            )}
 
             {image && (
               <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>

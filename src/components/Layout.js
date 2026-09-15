@@ -1,36 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Toolbar } from '@mui/material';
-import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
+import { Outlet, useLocation } from 'react-router-dom';
 
-import Navbar, { drawerWidthOpen, drawerWidthClosed } from './Navbar';
+import Navbar from './Navbar';
 import PageTransition from './PageTransition';
 
 const Layout = () => {
-  const [open, setOpen] = useState(false);
   const location = useLocation();
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Navbar open={open} setOpen={setOpen} />
-
+    <Box sx={{ minHeight: '100vh' }}>
+      <Navbar />
+      <Toolbar sx={{ minHeight: { xs: '64px !important', sm: '72px !important' } }} />
       <Box
         component="main"
         id="main-content"
         tabIndex={-1}
-        sx={{
-          flexGrow: 1,
-          position: 'relative',
-          p: { xs: 1, sm: 3 },
-          ml: { sm: `${open ? drawerWidthOpen : drawerWidthClosed}px` },
-          transition: 'margin 0.3s',
-          outline: 'none',
-          backgroundImage: t =>
-            `radial-gradient(circle at 100% 0%, ${t.palette.primary.main}0d 0%, transparent 45%)`,
-          backgroundAttachment: 'fixed',
-        }}
+        sx={{ minHeight: 'calc(100vh - 72px)', pb: { xs: 9, sm: 0 }, outline: 'none' }}
       >
-        <Toolbar />
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>
             <Outlet />

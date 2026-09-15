@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material';
 
 import { lightTheme } from '../../assets/theme';
@@ -32,7 +32,7 @@ describe('Coffee', () => {
 
   test('renders vendor chip on each product card', async () => {
     renderCoffee();
-    await waitFor(() => expect(screen.getByText('Espresso Coffee')).toBeInTheDocument());
+    await screen.findByText('Espresso Coffee');
     expect(screen.getAllByText('Blue Bottle').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Stumptown Roasters').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Counter Culture Coffee').length).toBeGreaterThan(0);
@@ -40,14 +40,14 @@ describe('Coffee', () => {
 
   test('shows all products when no vendor filter is selected', async () => {
     renderCoffee();
-    await waitFor(() => expect(screen.getByText('Espresso Coffee')).toBeInTheDocument());
+    await screen.findByText('Espresso Coffee');
     expect(screen.getByText('Cold Brew')).toBeInTheDocument();
     expect(screen.getByText('Ethiopian Yirgacheffe')).toBeInTheDocument();
   });
 
   test('filters to a single vendor when its chip is clicked', async () => {
     renderCoffee();
-    await waitFor(() => expect(screen.getByText('Espresso Coffee')).toBeInTheDocument());
+    await screen.findByText('Espresso Coffee');
 
     fireEvent.click(screen.getAllByText('Blue Bottle')[0]);
 
@@ -59,7 +59,7 @@ describe('Coffee', () => {
 
   test('filters to the union of multiple selected vendors', async () => {
     renderCoffee();
-    await waitFor(() => expect(screen.getByText('Espresso Coffee')).toBeInTheDocument());
+    await screen.findByText('Espresso Coffee');
 
     fireEvent.click(screen.getAllByText('Blue Bottle')[0]);
     fireEvent.click(screen.getAllByText('Stumptown Roasters')[0]);
@@ -71,7 +71,7 @@ describe('Coffee', () => {
 
   test('clearing the filter (toggling off) shows all products again', async () => {
     renderCoffee();
-    await waitFor(() => expect(screen.getByText('Espresso Coffee')).toBeInTheDocument());
+    await screen.findByText('Espresso Coffee');
 
     const blueBottleChip = screen.getAllByText('Blue Bottle')[0];
     fireEvent.click(blueBottleChip);

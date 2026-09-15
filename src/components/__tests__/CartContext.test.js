@@ -12,11 +12,24 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 const TestComponent = () => {
-  const { cart, addToCart, removeFromCart, updateQuantity, total, clearCart } = useCart();
+  const {
+    cart,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    total,
+    itemCount,
+    deliveryFee,
+    grandTotal,
+    clearCart,
+  } = useCart();
   return (
     <div>
       <div data-testid="cart-count">{cart.length}</div>
       <div data-testid="cart-total">{total.toFixed(2)}</div>
+      <div data-testid="item-count">{itemCount}</div>
+      <div data-testid="delivery-fee">{deliveryFee.toFixed(2)}</div>
+      <div data-testid="grand-total">{grandTotal.toFixed(2)}</div>
       <button
         data-testid="add-item"
         onClick={() => addToCart({ id: 1, title: 'Test Coffee', price: 5.99 })}
@@ -80,6 +93,24 @@ describe('CartContext', () => {
     renderWithProviders(<TestComponent />);
     fireEvent.click(screen.getByTestId('add-item'));
     expect(screen.getByTestId('cart-total')).toHaveTextContent('5.99');
+    expect(screen.getByTestId('item-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('delivery-fee')).toHaveTextContent('3.99');
+    expect(screen.getByTestId('grand-total')).toHaveTextContent('9.98');
+  });
+
+  test('waives delivery for qualifying orders', () => {
+    localStorageMock.getItem.mockReturnValue(
+      JSON.stringify([{ id: 1, title: 'Coffee Box', price: 20, quantity: 2 }])
+    );
+    renderWithProviders(<TestComponent />);
+    expect(screen.getByTestId('delivery-fee')).toHaveTextContent('0.00');
+    expect(screen.getByTestId('grand-total')).toHaveTextContent('40.00');
+  });
+
+  test('recovers from invalid persisted cart data', () => {
+    localStorageMock.getItem.mockReturnValue('{not-valid-json');
+    renderWithProviders(<TestComponent />);
+    expect(screen.getByTestId('cart-count')).toHaveTextContent('0');
   });
 
   test('loads cart from localStorage on mount', () => {

@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useMemo, useEffect, useCall
 import PropTypes from 'prop-types';
 
 import { useNotification } from '../context/NotificationContext';
+import { readJSON, writeJSON } from '../services/storage';
 
 const CartContext = createContext();
 
@@ -11,12 +12,12 @@ export const CartProvider = ({ children }) => {
   const { showSuccess, showWarning, showInfo } = useNotification();
 
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-    return savedCart ? JSON.parse(savedCart) : [];
+    const savedCart = readJSON(CART_STORAGE_KEY, []);
+    return Array.isArray(savedCart) ? savedCart : [];
   });
 
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    writeJSON(CART_STORAGE_KEY, cart);
   }, [cart]);
 
   const addToCart = useCallback(
@@ -63,19 +64,39 @@ export const CartProvider = ({ children }) => {
     [removeFromCart]
   );
 
-  const clearCart = useCallback(() => {
-    setCart([]);
-    showInfo('Cart cleared');
-  }, [showInfo]);
+  const clearCart = useCallback(
+    (options = {}) => {
+      setCart([]);
+      if (!options.silent) showInfo('Cart cleared');
+    },
+    [showInfo]
+  );
 
   const total = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0),
     [cart]
   );
 
+  const itemCount = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.quantity || 1), 0),
+    [cart]
+  );
+  const deliveryFee = total === 0 || total >= 35 ? 0 : 3.99;
+  const grandTotal = total + deliveryFee;
+
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, total, clearCart }}
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        total,
+        itemCount,
+        deliveryFee,
+        grandTotal,
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>

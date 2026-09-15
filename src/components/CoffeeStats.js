@@ -8,6 +8,7 @@ import {
   Skeleton,
   LinearProgress,
   Fade,
+  Container,
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { DataGrid } from '@mui/x-data-grid';
@@ -50,11 +51,27 @@ const CoffeeStats = () => {
   const totalRevenue = displayedRows.reduce((s, r) => s + r.itemsSold * r.price, 0);
   const topSeller = useMemo(() => {
     if (displayedRows.length === 0) return null;
-    return displayedRows.reduce((best, r) => (r.itemsSold > best.itemsSold ? r : best), displayedRows[0]);
+    return displayedRows.reduce(
+      (best, r) => (r.itemsSold > best.itemsSold ? r : best),
+      displayedRows[0]
+    );
   }, [displayedRows]);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 7 } }}>
+      <Typography variant="overline" color="secondary.main" fontWeight={800} letterSpacing=".14em">
+        MENU PERFORMANCE
+      </Typography>
+      <Typography
+        variant="h2"
+        component="h1"
+        sx={{ fontSize: { xs: '2.6rem', md: '3.6rem' }, mt: 0.5 }}
+      >
+        Coffee insights
+      </Typography>
+      <Typography color="text.secondary" sx={{ mt: 1, mb: 4, maxWidth: 580 }}>
+        Select coffees in the table to compare their sales and revenue performance.
+      </Typography>
       {!ready && <LinearProgress sx={{ mb: 2, borderRadius: 1 }} />}
 
       {/* Stat cards */}
@@ -223,7 +240,7 @@ const CoffeeStats = () => {
           </Box>
         </Box>
       </Fade>
-    </Box>
+    </Container>
   );
 };
 

@@ -6,20 +6,21 @@ import { ThemeProvider } from '@mui/material';
 import { lightTheme } from '../../assets/theme';
 import ErrorBoundary from '../ErrorBoundary';
 
-const ThrowError = ({ shouldThrow }) => {
+const ThrowError = ({ shouldThrow = false }) => {
   if (shouldThrow) throw new Error('Test error');
   return <div>No error</div>;
 };
 ThrowError.propTypes = { shouldThrow: PropTypes.bool };
-ThrowError.defaultProps = { shouldThrow: false };
 
 const originalConsoleError = console.error; // eslint-disable-line no-console
 beforeAll(() => {
+  // eslint-disable-next-line no-console
   console.error = jest.fn();
-}); // eslint-disable-line no-console
+});
 afterAll(() => {
+  // eslint-disable-next-line no-console
   console.error = originalConsoleError;
-}); // eslint-disable-line no-console
+});
 
 const wrap = ui => render(<ThemeProvider theme={lightTheme}>{ui}</ThemeProvider>);
 

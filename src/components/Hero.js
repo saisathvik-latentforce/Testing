@@ -1,168 +1,171 @@
 import React from 'react';
-import { Typography, Box, Stack, Button, Container } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Box, Button, Chip, Container, Stack, Typography } from '@mui/material';
+import { ArrowDownwardRounded, LocalCafeRounded, StarRounded } from '@mui/icons-material';
 
 import Espresso from '../assets/espresso-coffee.png';
 
 const Hero = () => (
   <Box
+    component="section"
+    aria-labelledby="hero-title"
     sx={{
-      background: 'radial-gradient(circle at 85% 20%, #f3e3cb 0%, #f9f3ec 45%, #ede0d0 100%)',
-      minHeight: '85vh',
-      display: 'flex',
-      alignItems: 'center',
       position: 'relative',
       overflow: 'hidden',
+      borderBottom: '1px solid',
+      borderColor: 'divider',
+      background: theme =>
+        theme.palette.mode === 'light'
+          ? 'linear-gradient(135deg, #f7f0e5 0%, #efe0ce 100%)'
+          : 'linear-gradient(135deg, #1a1511 0%, #2a1d15 100%)',
     }}
   >
-    {/* Ambient glow accents — decorative */}
     <Box
       aria-hidden="true"
       sx={{
         position: 'absolute',
-        top: '-10%',
-        right: '-5%',
-        width: 420,
-        height: 420,
+        width: 520,
+        height: 520,
+        right: '-10%',
+        top: '-35%',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(122,74,16,0.18) 0%, transparent 70%)',
-        filter: 'blur(20px)',
+        bgcolor: 'primary.main',
+        opacity: 0.08,
       }}
     />
-    <Box
-      aria-hidden="true"
-      sx={{
-        position: 'absolute',
-        bottom: '-15%',
-        left: '-8%',
-        width: 360,
-        height: 360,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(22,74,37,0.14) 0%, transparent 70%)',
-        filter: 'blur(20px)',
-      }}
-    />
-
-    {/* Mobile background image — decorative, hidden from screen readers */}
-    <Box
-      aria-hidden="true"
-      sx={{
-        display: { xs: 'block', md: 'none' },
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: `url(${Espresso})`,
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center right',
-        opacity: 0.12,
-      }}
-    />
-
-    <Container id="home" sx={{ position: 'relative', zIndex: 1 }}>
+    <Container maxWidth="lg">
       <Stack
         direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
-        sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', minHeight: '85vh' }}
+        alignItems="center"
+        spacing={{ xs: 3, md: 7 }}
+        sx={{ minHeight: { xs: 660, md: 620 }, py: { xs: 7, md: 8 } }}
       >
-        {/* Text */}
-        <Box
-          sx={{
-            width: { xs: '100%', md: '50%' },
-            padding: '3rem 0',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '.5rem',
-            alignItems: 'center',
-          }}
-        >
-          <Typography
-            variant="h1"
-            sx={{
-              fontSize: { xs: '2.4rem', md: '4rem' },
-              background: 'linear-gradient(135deg, #5c3609 0%, #7a4a10 60%, #a06a1f 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Coffee For All
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, color: 'text.secondary', maxWidth: 480 }}
-          >
-            &ldquo;Life begins after coffee&rdquo; &mdash; whether you need a morning boost, a
-            productivity kick, or just an excuse to pause.
-          </Typography>
-          <Button
-            variant="contained"
+        <Box sx={{ flex: 1, maxWidth: 650, zIndex: 1 }}>
+          <Chip
+            icon={<StarRounded />}
+            label="Roasted fresh every week"
             color="secondary"
-            href="#coffee"
-            size="large"
-            sx={{
-              mt: 1.5,
-              py: 1.5,
-              px: 4.5,
-              minHeight: 48,
-              fontSize: '1rem',
-              borderRadius: 3,
-              transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 20px -6px rgba(122,74,16,0.45)',
-              },
-            }}
+            variant="outlined"
+            sx={{ mb: 3, bgcolor: 'background.paper' }}
+          />
+          <Typography
+            id="hero-title"
+            component="h1"
+            variant="h1"
+            sx={{ fontSize: { xs: '3.4rem', sm: '4.7rem', md: '5.5rem' } }}
           >
-            Order Now
-          </Button>
+            Your best cup,
+            <Box
+              component="span"
+              sx={{ display: 'block', color: 'primary.main', fontStyle: 'italic' }}
+            >
+              thoughtfully made.
+            </Box>
+          </Typography>
+          <Typography
+            variant="h6"
+            component="p"
+            color="text.secondary"
+            sx={{ mt: 3, maxWidth: 560, fontWeight: 400, lineHeight: 1.6 }}
+          >
+            Discover small-batch coffees from celebrated roasters, selected for clarity, character,
+            and a truly memorable morning ritual.
+          </Typography>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4 }}>
+            <Button
+              variant="contained"
+              size="large"
+              href="#coffee"
+              endIcon={<ArrowDownwardRounded />}
+            >
+              Explore the menu
+            </Button>
+            <Button variant="text" color="inherit" size="large" href="#our-promise">
+              Why our coffee?
+            </Button>
+          </Stack>
+
+          <Stack id="our-promise" direction="row" spacing={{ xs: 2.5, sm: 5 }} sx={{ mt: 5 }}>
+            {[
+              ['48 hr', 'roast-to-ship'],
+              ['4.8/5', 'coffee lovers'],
+              ['100%', 'traceable lots'],
+            ].map(([value, label]) => (
+              <Box key={label}>
+                <Typography variant="h6" color="primary.main">
+                  {value}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {label}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
         </Box>
 
-        {/* Desktop image */}
-        <Box
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            width: '50%',
-            padding: 2,
-            textAlign: 'center',
-          }}
-        >
-          <img
-            src={Espresso}
-            alt="A freshly brewed espresso coffee"
-            style={{ width: '100%', filter: 'drop-shadow(0 8px 24px rgba(132,82,24,0.25))' }}
+        <Box sx={{ flex: 0.85, position: 'relative', width: '100%', maxWidth: 480 }}>
+          <Box
+            sx={{
+              aspectRatio: '1 / 1',
+              borderRadius: '50% 50% 42% 58% / 54% 42% 58% 46%',
+              bgcolor: 'primary.main',
+              opacity: 0.13,
+              position: 'absolute',
+              inset: 0,
+              transform: 'rotate(-8deg)',
+            }}
           />
+          <Box
+            component="img"
+            src={Espresso}
+            alt="Fresh espresso served with roasted coffee beans"
+            sx={{
+              position: 'relative',
+              display: 'block',
+              width: '100%',
+              aspectRatio: '1 / 1',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 28px 30px rgba(66, 36, 19, .26))',
+            }}
+          />
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.25}
+            sx={{
+              position: 'absolute',
+              left: { xs: 8, sm: -20 },
+              bottom: { xs: 12, sm: 42 },
+              p: 1.5,
+              pr: 2.5,
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              boxShadow: '0 18px 45px rgba(50, 30, 18, .16)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: '50%',
+                bgcolor: 'secondary.main',
+                color: 'secondary.contrastText',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <LocalCafeRounded />
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Picked for you</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Six exceptional brews
+              </Typography>
+            </Box>
+          </Stack>
         </Box>
       </Stack>
     </Container>
-
-    {/* Scroll-to-explore hint — desktop only, decorative */}
-    <Box
-      aria-hidden="true"
-      sx={{
-        position: 'absolute',
-        bottom: 24,
-        left: '50%',
-        display: { xs: 'none', md: 'flex' },
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 0.5,
-        color: 'text.secondary',
-        opacity: 0,
-        animation: 'scrollHint 1.8s ease-in-out 1s infinite, scrollFade 0.6s ease 0.8s forwards',
-        '@keyframes scrollHint': {
-          '0%, 100%': { transform: 'translate(-50%, 0)' },
-          '50%': { transform: 'translate(-50%, 8px)' },
-        },
-        '@keyframes scrollFade': {
-          '0%': { opacity: 0 },
-          '100%': { opacity: 0.7 },
-        },
-      }}
-    >
-      <Typography variant="caption">Scroll to explore</Typography>
-      <ExpandMoreIcon fontSize="small" />
-    </Box>
   </Box>
 );
 

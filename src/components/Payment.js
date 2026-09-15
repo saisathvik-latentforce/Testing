@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -9,10 +9,19 @@ import {
   TextField,
   Button,
   CircularProgress,
+  Breadcrumbs,
+  Container,
+  Divider,
+  Link as MuiLink,
+  Paper,
+  Stack,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-import { useNavigate } from 'react-router-dom';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { submitOrder } from '../services/orderService';
 
 import { useCart } from './CartContext';
 
@@ -92,7 +101,7 @@ const QRCode = ({ size = 168 }) => {
 QRCode.propTypes = { size: PropTypes.number };
 
 const Payment = () => {
-  const { total, clearCart, cart } = useCart();
+  const { total, deliveryFee, grandTotal, clearCart, cart, itemCount } = useCart();
   const navigate = useNavigate();
 
   const [upiId, setUpiId] = useState('');
@@ -101,17 +110,19 @@ const Payment = () => {
   const [cardErrors, setCardErrors] = useState({ cardNumber: '', expiry: '', cvv: '' });
   const [paying, setPaying] = useState(false);
 
-  const goToSuccess = method => {
-    clearCart();
-    navigate('/payment-success', { state: { method, amount: total, items: cart } });
-  };
+  useEffect(() => {
+    if (cart.length === 0) navigate('/orders', { replace: true });
+  }, [cart.length, navigate]);
 
-  const simulatePay = (method, onSuccess) => {
+  const processPayment = async method => {
     setPaying(true);
-    setTimeout(() => {
+    try {
+      const order = await submitOrder({ method, amount: grandTotal, items: cart });
+      clearCart({ silent: true });
+      navigate('/payment-success', { state: { order } });
+    } finally {
       setPaying(false);
-      onSuccess(method);
-    }, 800);
+    }
   };
 
   const handleUPIChange = e => {
@@ -159,7 +170,7 @@ const Payment = () => {
       setUpiError('Invalid UPI ID format');
       return;
     }
-    simulatePay('UPI', goToSuccess);
+    processPayment('UPI');
   };
 
   const handleCardPayment = () => {
@@ -174,160 +185,232 @@ const Payment = () => {
       setCardErrors(errors);
       return;
     }
-    simulatePay('Card', goToSuccess);
+    processPayment('Card');
   };
 
-  const handleScannerPayment = () => simulatePay('QR Scanner', goToSuccess);
+  const handleScannerPayment = () => processPayment('QR Scanner');
 
   return (
-    <Box sx={{ p: 4, maxWidth: 600, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom textAlign="center">
-        Payment
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 7 } }}>
+      <Breadcrumbs sx={{ mb: 2 }}>
+        <MuiLink component={Link} to="/" underline="hover" color="inherit">
+          Menu
+        </MuiLink>
+        <MuiLink component={Link} to="/orders" underline="hover" color="inherit">
+          My order
+        </MuiLink>
+        <Typography color="text.primary">Payment</Typography>
+      </Breadcrumbs>
+      <Typography
+        variant="h2"
+        component="h1"
+        sx={{ fontSize: { xs: '2.6rem', md: '3.6rem' }, mb: 1 }}
+      >
+        Complete your order
       </Typography>
-      <Typography variant="h6" gutterBottom textAlign="center" color="text.secondary">
-        Total: ${total.toFixed(2)}
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center" color="text.secondary" sx={{ mb: 4 }}>
+        <LockOutlinedIcon fontSize="small" />
+        <Typography variant="body2">Secure, encrypted checkout</Typography>
+      </Stack>
 
-      {/* UPI */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Pay via UPI</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body2" mb={1}>
-            Enter your UPI ID (e.g., username@upi)
-          </Typography>
-          <TextField
-            label="UPI ID"
-            fullWidth
-            value={upiId}
-            onChange={handleUPIChange}
-            error={!!upiError}
-            helperText={upiError}
-            disabled={paying}
-            sx={{ mb: 2 }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleUPIPayment}
-            disabled={!!upiError || !upiId || paying}
-            startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
-          >
-            {paying ? 'Processing…' : `Pay $${total.toFixed(2)} via UPI`}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 360px' },
+          gap: { xs: 4, md: 6 },
+          alignItems: 'start',
+        }}
+      >
+        <Box>
+          {/* UPI */}
+          <Accordion defaultExpanded>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="h6">Pay via UPI</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" mb={1}>
+                Enter your UPI ID (e.g., username@upi)
+              </Typography>
+              <TextField
+                label="UPI ID"
+                fullWidth
+                value={upiId}
+                onChange={handleUPIChange}
+                error={!!upiError}
+                helperText={upiError}
+                disabled={paying}
+                sx={{ mb: 2 }}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleUPIPayment}
+                disabled={!!upiError || !upiId || paying}
+                startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
+              >
+                {paying ? 'Processing…' : `Pay $${grandTotal.toFixed(2)} via UPI`}
+              </Button>
+            </AccordionDetails>
+          </Accordion>
 
-      {/* Card */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Pay via Card</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body2" mb={1}>
-            Enter your card details below
-          </Typography>
-          <TextField
-            label="Card Number"
-            fullWidth
-            value={cardDetails.cardNumber}
-            onChange={handleCardNumberChange}
-            error={!!cardErrors.cardNumber}
-            helperText={cardErrors.cardNumber}
-            placeholder="1234 5678 9012 3456"
-            disabled={paying}
-            sx={{ mb: 2 }}
-          />
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              label="Expiry (MM/YY)"
-              value={cardDetails.expiry}
-              onChange={handleExpiryChange}
-              error={!!cardErrors.expiry}
-              helperText={cardErrors.expiry}
-              placeholder="MM/YY"
-              disabled={paying}
-              sx={{ flex: 1 }}
-            />
-            <TextField
-              label="CVV"
-              value={cardDetails.cvv}
-              onChange={handleCVVChange}
-              error={!!cardErrors.cvv}
-              helperText={cardErrors.cvv}
-              placeholder="123"
-              disabled={paying}
-              sx={{ flex: 1 }}
-              type="password"
-            />
-          </Box>
-          <Button
-            variant="contained"
-            color="secondary"
-            fullWidth
-            sx={{ mt: 2 }}
-            onClick={handleCardPayment}
-            disabled={!!cardErrors.cardNumber || !!cardErrors.expiry || !!cardErrors.cvv || paying}
-            startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
-          >
-            {paying ? 'Processing…' : `Pay $${total.toFixed(2)} via Card`}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
+          {/* Card */}
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="h6">Pay via Card</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" mb={1}>
+                Enter your card details below
+              </Typography>
+              <TextField
+                label="Card Number"
+                fullWidth
+                value={cardDetails.cardNumber}
+                onChange={handleCardNumberChange}
+                error={!!cardErrors.cardNumber}
+                helperText={cardErrors.cardNumber}
+                placeholder="1234 5678 9012 3456"
+                disabled={paying}
+                sx={{ mb: 2 }}
+              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  label="Expiry (MM/YY)"
+                  value={cardDetails.expiry}
+                  onChange={handleExpiryChange}
+                  error={!!cardErrors.expiry}
+                  helperText={cardErrors.expiry}
+                  placeholder="MM/YY"
+                  disabled={paying}
+                  sx={{ flex: 1 }}
+                />
+                <TextField
+                  label="CVV"
+                  value={cardDetails.cvv}
+                  onChange={handleCVVChange}
+                  error={!!cardErrors.cvv}
+                  helperText={cardErrors.cvv}
+                  placeholder="123"
+                  disabled={paying}
+                  sx={{ flex: 1 }}
+                  type="password"
+                />
+              </Box>
+              <Button
+                variant="contained"
+                color="secondary"
+                fullWidth
+                sx={{ mt: 2 }}
+                onClick={handleCardPayment}
+                disabled={
+                  !!cardErrors.cardNumber || !!cardErrors.expiry || !!cardErrors.cvv || paying
+                }
+                startIcon={paying ? <CircularProgress size={18} color="inherit" /> : null}
+              >
+                {paying ? 'Processing…' : `Pay $${grandTotal.toFixed(2)} via Card`}
+              </Button>
+            </AccordionDetails>
+          </Accordion>
 
-      {/* QR Scanner */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <QrCodeScannerIcon fontSize="small" />
-            <Typography variant="h6">Pay via Scanner</Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body2" textAlign="center" mb={2}>
-            Scan the QR code with any UPI app (GPay, PhonePe, Paytm…)
+          {/* QR Scanner */}
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <QrCodeScannerIcon fontSize="small" />
+                <Typography variant="h6">Pay via Scanner</Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" textAlign="center" mb={2}>
+                Scan the QR code with any UPI app (GPay, PhonePe, Paytm…)
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  mb: 1,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: 'background.paper',
+                  boxShadow: t => `0 10px 30px -12px ${t.palette.primary.main}40`,
+                  width: 'fit-content',
+                  mx: 'auto',
+                }}
+              >
+                <QRCode size={168} />
+              </Box>
+              <Typography
+                variant="caption"
+                display="block"
+                textAlign="center"
+                color="text.secondary"
+                mb={2}
+              >
+                Amount: ${grandTotal.toFixed(2)}
+              </Typography>
+              <Button
+                variant="contained"
+                color="success"
+                fullWidth
+                startIcon={
+                  paying ? <CircularProgress size={18} color="inherit" /> : <QrCodeScannerIcon />
+                }
+                onClick={handleScannerPayment}
+                disabled={paying}
+              >
+                {paying ? 'Processing…' : 'Payment Done'}
+              </Button>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+
+        <Paper
+          sx={{
+            p: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            position: { md: 'sticky' },
+            top: { md: 96 },
+          }}
+        >
+          <Typography variant="h5">Order summary</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2.5 }}>
+            {itemCount} item{itemCount === 1 ? '' : 's'} in this order
           </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 1,
-              p: 2,
-              borderRadius: 2,
-              backgroundColor: 'background.paper',
-              boxShadow: t => `0 10px 30px -12px ${t.palette.primary.main}40`,
-              width: 'fit-content',
-              mx: 'auto',
-            }}
-          >
-            <QRCode size={168} />
-          </Box>
-          <Typography
-            variant="caption"
-            display="block"
-            textAlign="center"
-            color="text.secondary"
-            mb={2}
-          >
-            Amount: ${total.toFixed(2)}
-          </Typography>
-          <Button
-            variant="contained"
-            color="success"
-            fullWidth
-            startIcon={
-              paying ? <CircularProgress size={18} color="inherit" /> : <QrCodeScannerIcon />
-            }
-            onClick={handleScannerPayment}
-            disabled={paying}
-          >
-            {paying ? 'Processing…' : 'Payment Done'}
-          </Button>
-        </AccordionDetails>
-      </Accordion>
-    </Box>
+          <Stack spacing={1.5}>
+            {cart.map(item => (
+              <Stack key={item.id} direction="row" justifyContent="space-between" spacing={2}>
+                <Typography variant="body2" color="text.secondary">
+                  {item.title} × {item.quantity}
+                </Typography>
+                <Typography variant="body2" fontWeight={700}>
+                  ${(item.price * item.quantity).toFixed(2)}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+          <Divider sx={{ my: 2.5 }} />
+          <Stack spacing={1.25}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography color="text.secondary">Subtotal</Typography>
+              <Typography>${total.toFixed(2)}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography color="text.secondary">Delivery</Typography>
+              <Typography>{deliveryFee ? `$${deliveryFee.toFixed(2)}` : 'Free'}</Typography>
+            </Stack>
+          </Stack>
+          <Divider sx={{ my: 2.5 }} />
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="h6">Total</Typography>
+            <Typography variant="h6" color="primary.main">
+              ${grandTotal.toFixed(2)}
+            </Typography>
+          </Stack>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

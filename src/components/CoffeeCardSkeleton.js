@@ -2,9 +2,9 @@ import React from 'react';
 import { Card, CardContent, Skeleton, Box, Stack } from '@mui/material';
 
 const CoffeeCardSkeleton = () => (
-  <Card sx={{ maxWidth: 345, padding: 2, border: '2px solid transparent' }}>
+  <Card sx={{ width: '100%', padding: 1.25 }}>
     <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 1 }} />
-    <CardContent sx={{ minHeight: 200 }}>
+    <CardContent sx={{ minHeight: 210 }}>
       <Skeleton variant="text" sx={{ fontSize: '1.25rem', mb: 1 }} />
       <Skeleton variant="text" width="90%" />
       <Skeleton variant="text" width="75%" />

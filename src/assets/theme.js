@@ -1,171 +1,138 @@
-import { createTheme, alpha } from '@mui/material';
+import { alpha, createTheme } from '@mui/material/styles';
 
-const baseTokens = {
-  primary: '#7a4a10', // passes WCAG AA 4.5:1 on white
-  secondary: '#164a25',
+const light = {
+  primary: '#6f3f23',
+  secondary: '#1f5b4f',
+  background: '#f7f3ed',
+  paper: '#fffdf9',
+  text: '#211b17',
 };
 
-const typography = {
-  fontFamily: 'Droid Sans, sans-serif',
-  h1: { fontFamily: 'Eagle Lake, serif', fontWeight: 500, letterSpacing: 0.5 },
-  h2: { fontFamily: 'Eagle Lake, serif', fontWeight: 500 },
-  h3: { fontFamily: 'Eagle Lake, serif', fontWeight: 500 },
-  h4: { fontFamily: 'Eagle Lake, serif', fontWeight: 500 },
-  h5: { fontFamily: 'Eagle Lake, serif', fontWeight: 500, letterSpacing: 0.3 },
-  h6: { fontFamily: 'Eagle Lake, serif', fontWeight: 500, letterSpacing: 0.2 },
-  button: { fontWeight: 600, letterSpacing: 0.3 },
+const dark = {
+  primary: '#e3a76f',
+  secondary: '#75c5ad',
+  background: '#15120f',
+  paper: '#201b17',
+  text: '#f8f1e8',
 };
 
-const shape = { borderRadius: 14 };
-
-// Shared component overrides, parameterized by a mode-specific accent used for
-// soft colored shadows (keeps the same tested palette, just richer depth).
-const buildComponents = ({ primary, secondary, scrollbarTrack, scrollbarThumb, cardShadow }) => ({
-  MuiCssBaseline: {
-    styleOverrides: {
-      body: {
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}`,
-      },
-      '::selection': {
-        backgroundColor: alpha(primary, 0.35),
-      },
-      '*::-webkit-scrollbar': { width: 10, height: 10 },
-      '*::-webkit-scrollbar-track': { background: scrollbarTrack },
-      '*::-webkit-scrollbar-thumb': {
-        background: scrollbarThumb,
-        borderRadius: 8,
-      },
-      '*::-webkit-scrollbar-thumb:hover': {
-        background: primary,
-      },
+const buildTheme = (mode, tokens) =>
+  createTheme({
+    palette: {
+      mode,
+      primary: { main: tokens.primary },
+      secondary: { main: tokens.secondary },
+      background: { default: tokens.background, paper: tokens.paper },
+      text: { primary: tokens.text },
+      success: { main: mode === 'light' ? '#2f6b50' : '#75c5ad' },
     },
-  },
-  MuiAppBar: {
-    styleOverrides: {
-      root: {
-        backgroundImage: `linear-gradient(90deg, ${primary} 0%, ${alpha(primary, 0.92)} 100%)`,
-        backdropFilter: 'blur(10px)',
-        boxShadow: `0 4px 20px -4px ${alpha(primary, 0.5)}`,
+    shape: { borderRadius: 18 },
+    typography: {
+      fontFamily: 'Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      h1: {
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontWeight: 500,
+        letterSpacing: '-0.045em',
+        lineHeight: 0.98,
       },
-    },
-  },
-  MuiCard: {
-    defaultProps: { elevation: 0 },
-    styleOverrides: {
-      root: {
-        border: `1px solid ${alpha(primary, 0.08)}`,
-        boxShadow: cardShadow,
-        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+      h2: {
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontWeight: 500,
+        letterSpacing: '-0.035em',
+        lineHeight: 1.05,
       },
-    },
-  },
-  MuiPaper: {
-    styleOverrides: {
-      rounded: { borderRadius: shape.borderRadius },
-      elevation1: { boxShadow: cardShadow },
-    },
-  },
-  MuiButton: {
-    styleOverrides: {
-      root: {
-        borderRadius: 10,
-        textTransform: 'none',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        '&:hover': { transform: 'translateY(-1px)' },
+      h3: {
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontWeight: 500,
+        letterSpacing: '-0.025em',
       },
-      containedPrimary: {
-        backgroundImage: `linear-gradient(135deg, ${primary} 0%, ${alpha(primary, 0.8)} 100%)`,
-        boxShadow: `0 6px 16px -4px ${alpha(primary, 0.55)}`,
-        '&:hover': {
-          transform: 'translateY(-1px)',
-          boxShadow: `0 10px 22px -4px ${alpha(primary, 0.6)}`,
+      h4: { fontWeight: 700, letterSpacing: '-0.025em' },
+      h5: { fontWeight: 700, letterSpacing: '-0.02em' },
+      h6: { fontWeight: 700, letterSpacing: '-0.015em' },
+      button: { fontWeight: 700, letterSpacing: '-0.01em' },
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          html: { scrollBehavior: 'smooth' },
+          body: {
+            backgroundColor: tokens.background,
+            backgroundImage:
+              mode === 'light'
+                ? 'radial-gradient(circle at 10% 0%, rgba(196, 157, 112, .13), transparent 28%)'
+                : 'radial-gradient(circle at 10% 0%, rgba(227, 167, 111, .08), transparent 28%)',
+          },
+          '::selection': { backgroundColor: alpha(tokens.primary, 0.24) },
+          '@media (prefers-reduced-motion: reduce)': {
+            '*, *::before, *::after': {
+              animationDuration: '0.01ms !important',
+              animationIterationCount: '1 !important',
+              scrollBehavior: 'auto !important',
+              transitionDuration: '0.01ms !important',
+            },
+          },
         },
       },
-      containedSecondary: {
-        backgroundImage: `linear-gradient(135deg, ${secondary} 0%, ${alpha(secondary, 0.8)} 100%)`,
-        boxShadow: `0 6px 16px -4px ${alpha(secondary, 0.55)}`,
-        '&:hover': {
-          transform: 'translateY(-1px)',
-          boxShadow: `0 10px 22px -4px ${alpha(secondary, 0.6)}`,
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            backgroundColor: alpha(tokens.paper, 0.88),
+            color: tokens.text,
+            borderBottom: `1px solid ${alpha(tokens.text, 0.08)}`,
+            backdropFilter: 'blur(18px)',
+            boxShadow: 'none',
+          },
+        },
+      },
+      MuiCard: {
+        defaultProps: { elevation: 0 },
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            border: `1px solid ${alpha(tokens.text, 0.08)}`,
+            boxShadow: `0 18px 50px -34px ${alpha(tokens.text, 0.42)}`,
+          },
+        },
+      },
+      MuiPaper: { defaultProps: { elevation: 0 } },
+      MuiButton: {
+        defaultProps: { disableElevation: true },
+        styleOverrides: {
+          root: { minHeight: 44, borderRadius: 999, paddingInline: 20, textTransform: 'none' },
+          containedPrimary: {
+            boxShadow: `0 10px 24px -14px ${alpha(tokens.primary, 0.9)}`,
+          },
+        },
+      },
+      MuiChip: { styleOverrides: { root: { borderRadius: 999, fontWeight: 650 } } },
+      MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 14 } } },
+      MuiAccordion: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            border: `1px solid ${alpha(tokens.text, 0.1)}`,
+            borderRadius: '16px !important',
+            marginBottom: 12,
+            overflow: 'hidden',
+            '&::before': { display: 'none' },
+          },
+        },
+      },
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            '&.Mui-focusVisible': {
+              outline: `3px solid ${alpha(tokens.secondary, 0.7)}`,
+              outlineOffset: 2,
+            },
+          },
         },
       },
     },
-  },
-  MuiChip: {
-    styleOverrides: { root: { fontWeight: 600, borderRadius: 8 } },
-  },
-  MuiTextField: {
-    defaultProps: { variant: 'outlined' },
-  },
-  MuiOutlinedInput: {
-    styleOverrides: { root: { borderRadius: 10 } },
-  },
-  MuiFab: {
-    styleOverrides: {
-      root: {
-        boxShadow: `0 8px 20px -4px ${alpha(primary, 0.6)}`,
-      },
-    },
-  },
-  MuiAccordion: {
-    styleOverrides: {
-      root: {
-        borderRadius: shape.borderRadius,
-        border: `1px solid ${alpha(primary, 0.1)}`,
-        '&:before': { display: 'none' },
-        '&.Mui-expanded': { boxShadow: cardShadow },
-        overflow: 'hidden',
-        marginBottom: 8,
-      },
-    },
-  },
-  MuiButtonBase: {
-    styleOverrides: {
-      root: {
-        '&.Mui-focusVisible': {
-          outline: `3px solid ${secondary}`,
-          outlineOffset: 2,
-        },
-      },
-    },
-  },
-});
+  });
 
-export const lightTheme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: { main: baseTokens.primary },
-    secondary: { main: baseTokens.secondary },
-    background: { default: '#faf7f2', paper: '#ffffff' },
-  },
-  typography,
-  shape,
-  components: buildComponents({
-    primary: baseTokens.primary,
-    secondary: baseTokens.secondary,
-    scrollbarTrack: '#f0e9df',
-    scrollbarThumb: alpha(baseTokens.primary, 0.45),
-    cardShadow: `0 10px 30px -12px ${alpha(baseTokens.primary, 0.28)}`,
-  }),
-});
-
-export const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: { main: '#c68b3e' },
-    secondary: { main: '#4caf77' },
-    background: { default: '#150f09', paper: '#221609' },
-  },
-  typography,
-  shape,
-  components: buildComponents({
-    primary: '#c68b3e',
-    secondary: '#4caf77',
-    scrollbarTrack: '#1f150a',
-    scrollbarThumb: alpha('#c68b3e', 0.4),
-    cardShadow: '0 10px 30px -12px rgba(0,0,0,0.6)',
-  }),
-});
+export const lightTheme = buildTheme('light', light);
+export const darkTheme = buildTheme('dark', dark);
 
 export default lightTheme;

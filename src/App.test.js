@@ -7,13 +7,11 @@ jest.mock('react-router-dom', () => {
   const BrowserRouter = ({ children }) => <div>{children}</div>;
   BrowserRouter.propTypes = { children: PropTypes.node.isRequired };
 
-  const Routes = ({ children }) => <div>{children}</div>;
+  const Routes = ({ children = null }) => <div>{children}</div>;
   Routes.propTypes = { children: PropTypes.node };
-  Routes.defaultProps = { children: null };
 
-  const Route = ({ element }) => element || null;
+  const Route = ({ element = null }) => element || null;
   Route.propTypes = { element: PropTypes.node };
-  Route.defaultProps = { element: null };
 
   const LinkComp = ({ children, to }) => <a href={to}>{children}</a>;
   LinkComp.displayName = 'Link';
