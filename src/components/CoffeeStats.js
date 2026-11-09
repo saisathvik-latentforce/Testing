@@ -28,19 +28,16 @@ const columns = [
   { field: 'itemsSold', headerName: 'Items Sold', width: 120 },
 ];
 
-const loadAllProducts = () => {
+const buildRows = () => {
   const custom = readJSON(CUSTOM_MENU_KEY, []);
-  return [...products, ...(Array.isArray(custom) ? custom : [])];
+  const allProducts = [...products, ...(Array.isArray(custom) ? custom : [])];
+  return allProducts.map((p, index) => ({
+    id: typeof p.id === 'number' ? p.id : index + products.length + 1,
+    typeOfCoffee: p.title,
+    price: p.price,
+    itemsSold: p.itemsSold || 0,
+  }));
 };
-
-const allProducts = loadAllProducts();
-
-const rows = allProducts.map((p, index) => ({
-  id: typeof p.id === 'number' ? p.id : index + products.length + 1,
-  typeOfCoffee: p.title,
-  price: p.price,
-  itemsSold: p.itemsSold || 0,
-}));
 
 const CoffeeStats = () => {
   const [ready, setReady] = useState(false);
@@ -48,6 +45,8 @@ const CoffeeStats = () => {
     type: 'include',
     ids: new Set(),
   });
+
+  const rows = useMemo(() => buildRows(), []);
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 600);
@@ -57,7 +56,7 @@ const CoffeeStats = () => {
   const displayedRows = useMemo(() => {
     if (rowSelectionModel.ids.size === 0) return rows;
     return rows.filter(row => rowSelectionModel.ids.has(row.id));
-  }, [rowSelectionModel]);
+  }, [rowSelectionModel, rows]);
 
   const totalUnitsSold = displayedRows.reduce((s, r) => s + r.itemsSold, 0);
   const totalRevenue = displayedRows.reduce((s, r) => s + r.itemsSold * r.price, 0);

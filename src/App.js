@@ -10,6 +10,7 @@ import Coffee from './components/Coffee';
 import Order from './components/Order';
 import CoffeeStats from './components/CoffeeStats';
 import Payment from './components/Payment';
+import NotFound from './components/NotFound';
 import PaymentSuccess from './components/PaymentSuccess';
 import { CartProvider } from './components/CartContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -35,6 +36,7 @@ const ThemedApp = () => {
           <Route path="/stats" element={<CoffeeStats />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </ThemeProvider>
