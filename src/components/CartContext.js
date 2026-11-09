@@ -7,6 +7,7 @@ import { readJSON, writeJSON } from '../services/storage';
 const CartContext = createContext();
 
 const CART_STORAGE_KEY = 'cuppacart_cart';
+const MAX_ITEM_QTY = 99;
 
 export const CartProvider = ({ children }) => {
   const { showSuccess, showWarning, showInfo } = useNotification();
@@ -25,6 +26,10 @@ export const CartProvider = ({ children }) => {
       setCart(prev => {
         const existing = prev.find(item => item.id === product.id);
         if (existing) {
+          if (existing.quantity >= MAX_ITEM_QTY) {
+            showInfo(`Maximum of ${MAX_ITEM_QTY} per item reached`);
+            return prev;
+          }
           showSuccess(`${product.title} quantity updated`);
           return prev.map(item =>
             item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
@@ -34,7 +39,7 @@ export const CartProvider = ({ children }) => {
         return [...prev, { ...product, quantity: 1 }];
       });
     },
-    [showSuccess]
+    [showSuccess, showInfo]
   );
 
   const removeFromCart = useCallback(
@@ -59,7 +64,8 @@ export const CartProvider = ({ children }) => {
         removeFromCart(id);
         return;
       }
-      setCart(prev => prev.map(item => (item.id === id ? { ...item, quantity: newQty } : item)));
+      const clamped = Math.min(newQty, MAX_ITEM_QTY);
+      setCart(prev => prev.map(item => (item.id === id ? { ...item, quantity: clamped } : item)));
     },
     [removeFromCart]
   );

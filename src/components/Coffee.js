@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -53,6 +53,8 @@ const Coffee = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [activeVendorFilters, setActiveVendorFilters] = useState([]);
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceRef = useRef(null);
   const [sort, setSort] = useState('featured');
   const [activeStates, setActiveStates] = useState(() => {
     const saved = readJSON(AVAILABILITY_KEY, {});
@@ -65,8 +67,16 @@ const Coffee = () => {
   const vendors = useMemo(() => [...new Set(products.map(product => product.vendor))], [products]);
   const getCartQty = id => cart.find(item => item.id === id)?.quantity || 0;
 
+  const handleSearchChange = value => {
+    setQuery(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(value), 300);
+  };
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
   const visibleProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = debouncedQuery.trim().toLowerCase();
     const filtered = products.filter(product => {
       const matchesVendor =
         activeVendorFilters.length === 0 || activeVendorFilters.includes(product.vendor);
@@ -84,7 +94,7 @@ const Coffee = () => {
       if (sort === 'popular') return b.itemsSold - a.itemsSold;
       return a.id - b.id;
     });
-  }, [activeVendorFilters, products, query, sort]);
+  }, [activeVendorFilters, products, debouncedQuery, sort]);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 450);
@@ -166,7 +176,7 @@ const Coffee = () => {
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
             <TextField
               value={query}
-              onChange={event => setQuery(event.target.value)}
+              onChange={event => handleSearchChange(event.target.value)}
               placeholder="Search coffee, tasting notes, or roaster"
               aria-label="Search the coffee menu"
               fullWidth
@@ -178,7 +188,7 @@ const Coffee = () => {
                 ),
                 endAdornment: query ? (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setQuery('')} aria-label="Clear search">
+                    <IconButton size="small" onClick={() => handleSearchChange('')} aria-label="Clear search">
                       <CloseRounded fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -378,7 +388,7 @@ const Coffee = () => {
             <Button
               variant="outlined"
               onClick={() => {
-                setQuery('');
+                handleSearchChange('');
                 setActiveVendorFilters([]);
               }}
             >

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useMemo } from 'react';
+import React, { createContext, useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 import { lightTheme, darkTheme } from '../assets/theme';
@@ -18,6 +18,16 @@ export const ThemeContextProvider = ({ children }) => {
       return next;
     });
   };
+
+  useEffect(() => {
+    const handleStorageChange = event => {
+      if (event.key === STORAGE_KEY && event.newValue) {
+        setMode(event.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const theme = useMemo(() => (mode === 'dark' ? darkTheme : lightTheme), [mode]);
 

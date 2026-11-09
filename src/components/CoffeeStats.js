@@ -14,7 +14,12 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { DataGrid } from '@mui/x-data-grid';
 import { BarChart } from '@mui/x-charts/BarChart';
 
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
+
 import products from '../assets/coffee';
+import { readJSON } from '../services/storage';
+
+const CUSTOM_MENU_KEY = 'cuppacart_custom_menu';
 
 const columns = [
   { field: 'id', headerName: 'ID', width: 50 },
@@ -23,11 +28,18 @@ const columns = [
   { field: 'itemsSold', headerName: 'Items Sold', width: 120 },
 ];
 
-const rows = products.map(p => ({
-  id: p.id,
+const loadAllProducts = () => {
+  const custom = readJSON(CUSTOM_MENU_KEY, []);
+  return [...products, ...(Array.isArray(custom) ? custom : [])];
+};
+
+const allProducts = loadAllProducts();
+
+const rows = allProducts.map((p, index) => ({
+  id: typeof p.id === 'number' ? p.id : index + products.length + 1,
   typeOfCoffee: p.title,
   price: p.price,
-  itemsSold: p.itemsSold,
+  itemsSold: p.itemsSold || 0,
 }));
 
 const CoffeeStats = () => {
@@ -227,7 +239,7 @@ const CoffeeStats = () => {
               alignItems: 'center',
             }}
           >
-            {displayedRows.length > 0 && (
+            {displayedRows.length > 0 ? (
               <BarChart
                 xAxis={[{ data: displayedRows.map(r => r.typeOfCoffee), scaleType: 'band' }]}
                 series={[
@@ -236,6 +248,13 @@ const CoffeeStats = () => {
                 ]}
                 height={300}
               />
+            ) : (
+              <Stack alignItems="center" spacing={1.5}>
+                <BarChartRoundedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+                <Typography color="text.secondary" variant="body2">
+                  Select coffees to visualize their performance
+                </Typography>
+              </Stack>
             )}
           </Box>
         </Box>

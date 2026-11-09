@@ -114,6 +114,8 @@ const Payment = () => {
     if (cart.length === 0) navigate('/orders', { replace: true });
   }, [cart.length, navigate]);
 
+  if (cart.length === 0) return null;
+
   const processPayment = async method => {
     setPaying(true);
     try {
